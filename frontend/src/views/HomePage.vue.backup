@@ -1,0 +1,206 @@
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white overflow-hidden">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+      <div class="max-w-7xl mx-auto backdrop-blur-xl bg-white/10 rounded-full px-8 py-4 flex items-center justify-between border border-white/20 shadow-2xl">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+          </div>
+          <span class="font-bold text-xl">SkillSet AI</span>
+        </div>
+
+        <!-- Nav Links -->
+        <div class="flex items-center gap-8">
+          <a href="#features" class="text-sm font-medium hover:text-blue-400 transition-colors">Features</a>
+          <a href="#how-it-works" class="text-sm font-medium hover:text-blue-400 transition-colors">How It Works</a>
+          <button 
+            @click="openAuthModal"
+            class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+          >
+            Get Started
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center px-6 pt-32 pb-20">
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute w-96 h-96 bg-blue-500/30 rounded-full blur-3xl top-20 left-10 animate-pulse"></div>
+        <div class="absolute w-96 h-96 bg-purple-500/30 rounded-full blur-3xl bottom-20 right-10 animate-pulse delay-1000"></div>
+      </div>
+
+      <div class="relative z-10 max-w-5xl mx-auto text-center">
+        <h1 class="text-6xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-tight">
+          Learning Made <br>Accessible for Everyone
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+          Transform complex content into simple, understandable formats using AI-powered accessibility tools tailored to your learning needs.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <button 
+            @click="openAuthModal"
+            class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-lg font-semibold hover:shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+          >
+            Start Learning Free
+          </button>
+          <button 
+            @click="scrollToFeatures"
+            class="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-lg font-semibold hover:bg-white/20 transition-all"
+          >
+            Learn More
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto">
+          <div class="text-center">
+            <div class="text-4xl font-bold text-blue-400">10K+</div>
+            <div class="text-gray-400 mt-2">Active Users</div>
+          </div>
+          <div class="text-center">
+            <div class="text-4xl font-bold text-purple-400">50K+</div>
+            <div class="text-gray-400 mt-2">Documents Processed</div>
+          </div>
+          <div class="text-center">
+            <div class="text-4xl font-bold text-pink-400">99%</div>
+            <div class="text-gray-400 mt-2">Satisfaction</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="relative py-20 px-6 bg-black/20">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+          Powerful Features
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Feature Cards -->
+          <div v-for="feature in features" :key="feature.title" 
+               class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all hover:scale-105 cursor-pointer">
+            <div class="w-14 h-14 rounded-xl flex items-center justify-center mb-6" :class="feature.gradient">
+              <component :is="feature.icon" class="w-8 h-8 text-white" />
+            </div>
+            <h3 class="text-2xl font-bold mb-4">{{ feature.title }}</h3>
+            <p class="text-gray-300">{{ feature.description }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="relative py-32 px-6">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-5xl font-bold mb-6">Ready to Transform Your Learning?</h2>
+        <p class="text-xl text-gray-300 mb-10">Join thousands of learners making education accessible.</p>
+        <button 
+          @click="openAuthModal"
+          class="px-12 py-5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-xl font-semibold hover:shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+        >
+          Get Started Free
+        </button>
+      </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <AuthModal v-if="showAuthModal" @close="closeAuthModal" />
+  </div>
+</template>
+
+<script setup>
+import { ref, h } from 'vue';
+import AuthModal from '../components/AuthModal.vue';
+
+const showAuthModal = ref(false);
+
+const features = [
+  {
+    title: 'Text Simplification',
+    description: 'Convert complex documents to your preferred reading level using advanced AI.',
+    gradient: 'bg-gradient-to-br from-blue-500 to-purple-600',
+    icon: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' })
+    ])
+  },
+  {
+    title: 'Text-to-Speech',
+    description: 'Listen to content with natural AI voices for better comprehension.',
+    gradient: 'bg-gradient-to-br from-purple-500 to-pink-600',
+    icon: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z' })
+    ])
+  },
+  {
+    title: 'Image Descriptions',
+    description: 'Get detailed alt-text for images using Google Gemini AI.',
+    gradient: 'bg-gradient-to-br from-pink-500 to-red-600',
+    icon: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' })
+    ])
+  },
+  {
+    title: 'Smart Summaries',
+    description: 'Extract key points and create concise summaries automatically.',
+    gradient: 'bg-gradient-to-br from-blue-500 to-cyan-600',
+    icon: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' })
+    ])
+  },
+  {
+    title: 'Customizable',
+    description: 'Adjust font sizes, contrast, and accessibility settings to your needs.',
+    gradient: 'bg-gradient-to-br from-green-500 to-teal-600',
+    icon: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' })
+    ])
+  },
+  {
+    title: 'Math & Science',
+    description: 'Special support for equations, flowcharts, and scientific content.',
+    gradient: 'bg-gradient-to-br from-orange-500 to-red-600',
+    icon: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01' })
+    ])
+  }
+];
+
+const openAuthModal = () => {
+  showAuthModal.value = true;
+};
+
+const closeAuthModal = () => {
+  showAuthModal.value = false;
+};
+
+const scrollToFeatures = () => {
+  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+};
+</script>
+
+<style scoped>
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+</style>

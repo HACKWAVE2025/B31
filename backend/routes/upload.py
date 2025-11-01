@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 import os
 import validators
 from services.url_processor import url_processor
+from services.document_processor import DocumentProcessor
 from routes.auth import token_required
 
 upload_bp = Blueprint('upload', __name__)
@@ -57,6 +58,16 @@ def upload_document():
         file_size = os.path.getsize(file_path)
         file_extension = filename.rsplit('.', 1)[1].lower()
         
+        # Extract text content from the file using DocumentProcessor
+        extracted_text = ''
+        try:
+            result = DocumentProcessor.process_document(file_path, file_extension)
+            extracted_text = result.get('text', '')
+            print(f"✅ Extracted {len(extracted_text)} characters from {filename}")
+        except Exception as e:
+            print(f"⚠️ Could not extract text from {filename}: {e}")
+            extracted_text = ''
+        
         return jsonify({
             'success': True,
             'message': 'File uploaded successfully',
@@ -67,6 +78,8 @@ def upload_document():
                 'file_size': file_size,
                 'file_size_mb': round(file_size / (1024 * 1024), 2),
                 'file_type': file_extension,
+                'text_content': extracted_text,  # Include extracted text
+                'word_count': len(extracted_text.split()) if extracted_text else 0
             }
         }), 200
     except Exception as e:

@@ -267,18 +267,31 @@ const handleUpload = async () => {
       // Upload file
       result = await apiService.uploadDocument(selectedFile.value, userId);
       
-      // Save to Firestore
-      await contentStore.saveUpload(userId, selectedFile.value, {
-        fileId: result.data.fileId,
+      console.log('✅ Upload result:', result.data);
+      
+      // Save to database with extracted text content
+      await contentStore.saveUpload(userId, {
+        filename: result.data.file.filename,
+        fileType: result.data.file.file_type,
+        fileSize: result.data.file.file_size,
+        filePath: result.data.file.file_path,
+        textContent: result.data.file.text_content || '',  // Store extracted text
+        uploadType: 'file',
+        status: 'completed',
         uploadedAt: new Date().toISOString(),
       });
     } else if (activeTab.value === 'url' && urlInput.value) {
       // Upload URL
       result = await apiService.uploadURL(urlInput.value, userId);
       
-      // Save to Firestore
-      await contentStore.saveUpload(userId, { name: urlInput.value, type: 'url', size: 0 }, {
+      // Save to database with extracted content
+      await contentStore.saveUpload(userId, {
+        filename: urlInput.value,
+        fileType: 'url',
         url: urlInput.value,
+        textContent: result.data.content?.text || '',  // Store extracted text from URL
+        uploadType: 'url',
+        status: 'completed',
         uploadedAt: new Date().toISOString(),
       });
     }

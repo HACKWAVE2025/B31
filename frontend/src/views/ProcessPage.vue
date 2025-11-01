@@ -1,19 +1,11 @@
-<template><template>
+<template>
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Processing Content</h1>
 
-  <div class="max-w-7xl mx-auto">  <div class="max-w-4xl mx-auto">
-
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Process Content</h1>    <h1 class="text-3xl font-bold mb-6">Processing Content</h1>
-
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-md">
-
-    <!-- Step Indicator -->      <p>Processing interface - Coming soon!</p>
-
-    <div class="mb-8">    </div>
-
-      <div class="flex items-center justify-between">  </div>
-
-        <div v-for="(step, index) in steps" :key="index" class="flex-1"></template>
-
+    <!-- Step Indicator -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div v-for="(step, index) in steps" :key="index" class="flex-1">
           <div class="flex items-center">
             <div
               :class="[
@@ -158,56 +150,118 @@
 
     <!-- Step 3: Generated Content -->
     <div v-if="currentStep === 2" class="space-y-6 animate-fade-in">
+      <!-- Success Banner -->
+      <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold">Processing Complete!</h3>
+            <p class="text-white/90">Your content has been successfully processed and simplified.</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Simplified Content -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">✨ Simplified Content</h2>
-          <button @click="copyToClipboard(generatedContent.simplified)" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div class="bg-gradient-to-r from-primary-500 to-accent-500 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-xl font-bold text-white flex items-center">
+            <span class="mr-2">✨</span> Simplified Content
+          </h2>
+          <button 
+            @click="copyToClipboard(formatText(generatedContent.simplified))" 
+            class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white font-medium text-sm"
+          >
             📋 Copy
           </button>
         </div>
-        <div class="prose dark:prose-invert max-w-none">
-          <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ generatedContent.simplified }}</p>
+        <div class="p-6">
+          <div class="prose prose-lg dark:prose-invert max-w-none">
+            <div 
+              class="text-gray-800 dark:text-gray-200 leading-relaxed space-y-4"
+              v-html="formatTextToHTML(generatedContent.simplified)"
+            ></div>
+          </div>
         </div>
       </div>
 
       <!-- Summary -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">📝 Key Summary</h2>
-          <button @click="copyToClipboard(generatedContent.summary)" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-xl font-bold text-white flex items-center">
+            <span class="mr-2">📝</span> Key Summary
+          </h2>
+          <button 
+            @click="copyToClipboard(formatText(generatedContent.summary))" 
+            class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white font-medium text-sm"
+          >
             📋 Copy
           </button>
         </div>
-        <div class="prose dark:prose-invert max-w-none">
-          <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ generatedContent.summary }}</p>
+        <div class="p-6">
+          <div class="prose prose-lg dark:prose-invert max-w-none">
+            <div 
+              class="text-gray-800 dark:text-gray-200 leading-relaxed space-y-4"
+              v-html="formatTextToHTML(generatedContent.summary)"
+            ></div>
+          </div>
         </div>
       </div>
 
       <!-- Key Points -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">🎯 Key Points</h2>
-        <ul class="space-y-2">
-          <li v-for="(point, index) in generatedContent.keyPoints" :key="index" class="flex items-start space-x-3">
-            <span class="w-6 h-6 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5">{{ index + 1 }}</span>
-            <span class="text-gray-700 dark:text-gray-300">{{ point }}</span>
-          </li>
-        </ul>
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div class="bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4">
+          <h2 class="text-xl font-bold text-white flex items-center">
+            <span class="mr-2">🎯</span> Key Points
+          </h2>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <div 
+              v-for="(point, index) in formatKeyPoints(generatedContent.keyPoints)" 
+              :key="index" 
+              class="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:shadow-md transition-all"
+            >
+              <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                {{ index + 1 }}
+              </div>
+              <p class="text-gray-800 dark:text-gray-200 leading-relaxed flex-1 pt-0.5">{{ point }}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex space-x-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <button
           @click="saveContent"
-          class="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+          class="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center justify-center space-x-2"
         >
-          💾 Save Content
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+          </svg>
+          <span>Save Content</span>
+        </button>
+        <button
+          @click="downloadPDF"
+          class="px-6 py-4 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center justify-center space-x-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+          </svg>
+          <span>Download PDF</span>
         </button>
         <button
           @click="startOver"
-          class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+          class="px-6 py-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transform hover:scale-105 transition-all flex items-center justify-center space-x-2"
         >
-          🔄 Process Another File
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span>Process Another</span>
         </button>
       </div>
     </div>
@@ -264,7 +318,18 @@ onMounted(async () => {
   if (uploads.length > 0) {
     const lastUpload = uploads[uploads.length - 1];
     fileName.value = lastUpload.filename;
-    fileContent.value = `Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll. Plants use sunlight, water, and carbon dioxide to produce glucose and oxygen. This process occurs in the chloroplasts of plant cells, specifically in structures called thylakoids. The light-dependent reactions take place in the thylakoid membranes, where light energy is converted into chemical energy in the form of ATP and NADPH. The light-independent reactions, also known as the Calvin cycle, occur in the stroma of the chloroplast. During these reactions, carbon dioxide is fixed into organic molecules using the energy from ATP and NADPH. The overall equation for photosynthesis is: 6CO2 + 6H2O + light energy → C6H12O6 + 6O2. This process is crucial for life on Earth as it provides oxygen for respiration and forms the base of most food chains.`;
+    
+    // Use the text content extracted during upload
+    fileContent.value = lastUpload.textContent || lastUpload.text_content || '';
+    
+    if (!fileContent.value) {
+      console.warn('⚠️ No text content found in upload. File may need reprocessing.');
+    } else {
+      console.log('✅ Using uploaded file content:', fileContent.value.substring(0, 200) + '...');
+      console.log(`📊 Content length: ${fileContent.value.length} characters, ${fileContent.value.split(' ').length} words`);
+    }
+  } else {
+    console.error('❌ No uploads found in store');
   }
 });
 
@@ -313,6 +378,172 @@ const processWithAI = async () => {
 };
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Format text by removing API response artifacts
+const formatText = (text) => {
+  if (!text) return '';
+  
+  // If it's an object, try to extract the text content
+  if (typeof text === 'object') {
+    // Handle API response format
+    if (text.simplifiedText) return formatText(text.simplifiedText);
+    if (text.summary) return formatText(text.summary);
+    if (text.text) return formatText(text.text);
+    if (text.content) return formatText(text.content);
+    
+    // Try to stringify and parse
+    try {
+      const str = JSON.stringify(text);
+      return formatText(str);
+    } catch (e) {
+      return String(text);
+    }
+  }
+  
+  // Convert to string if not already
+  text = String(text);
+  
+  // Remove JSON formatting if present
+  if (text.includes('"success"') || text.includes('"simplifiedText"')) {
+    try {
+      const parsed = JSON.parse(text);
+      return formatText(parsed); // Recursively format the parsed object
+    } catch (e) {
+      // Not JSON, continue with text cleanup
+    }
+  }
+  
+  // Clean up common artifacts
+  return text
+    .replace(/^["']|["']$/g, '') // Remove quotes at start/end
+    .replace(/\\n/g, '\n') // Convert \n to actual newlines
+    .trim();
+};
+
+// Format text to HTML with paragraphs
+const formatTextToHTML = (text) => {
+  const cleaned = formatText(text);
+  if (!cleaned) return '<p class="text-gray-500 italic">No content available</p>';
+  
+  // Split into paragraphs and wrap in p tags
+  const paragraphs = cleaned
+    .split('\n\n')
+    .filter(p => p.trim())
+    .map(p => `<p class="mb-4 last:mb-0">${p.trim()}</p>`)
+    .join('');
+  
+  return paragraphs || `<p>${cleaned}</p>`;
+};
+
+// Format key points from various response formats
+const formatKeyPoints = (keyPoints) => {
+  if (!keyPoints) {
+    return ['No key points extracted yet.'];
+  }
+  
+  // If it's an object (Gemini response format), extract the keyPoints property
+  if (typeof keyPoints === 'object' && !Array.isArray(keyPoints)) {
+    // Handle Gemini API response format: { success: true, keyPoints: "..." }
+    if (keyPoints.keyPoints) {
+      return formatKeyPoints(keyPoints.keyPoints);
+    }
+    if (keyPoints.points) {
+      return formatKeyPoints(keyPoints.points);
+    }
+    
+    // If no keyPoints property, try to get string values
+    const values = Object.values(keyPoints).filter(v => typeof v === 'string' && v.length > 10);
+    if (values.length > 0) {
+      return formatKeyPoints(values[0]); // Take the first substantial string value
+    }
+  }
+  
+  // If it's already an array of strings, clean and return
+  if (Array.isArray(keyPoints)) {
+    if (keyPoints.length === 0) return ['No key points extracted yet.'];
+    if (typeof keyPoints[0] === 'string') {
+      return keyPoints.map(point => point.trim()).filter(p => p.length > 0);
+    }
+  }
+  
+  // If it's a string, parse it into an array
+  if (typeof keyPoints === 'string') {
+    if (!keyPoints.trim()) return ['No key points extracted yet.'];
+    
+    // Try to parse as JSON first
+    try {
+      const parsed = JSON.parse(keyPoints);
+      return formatKeyPoints(parsed);
+    } catch (e) {
+      // Not JSON, split by newlines and extract numbered points
+      const lines = keyPoints
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => {
+          // Remove leading numbers, asterisks, dashes, etc.
+          return line.replace(/^[\d\*\-\•]+[\.):\s]+/, '').trim();
+        })
+        .filter(line => line.length > 5); // Filter out very short lines
+      
+      return lines.length > 0 ? lines : ['No key points extracted yet.'];
+    }
+  }
+  
+  return ['No key points extracted yet.'];
+};
+
+// Download content as PDF
+const downloadPDF = () => {
+  const content = `
+ACCESSIBILITY LEARNING HUB - PROCESSED CONTENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+File: ${fileName.value}
+Date: ${new Date().toLocaleDateString()}
+Reading Level: ${survey.readingLevel}
+
+
+✨ SIMPLIFIED CONTENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${formatText(generatedContent.simplified)}
+
+
+📝 KEY SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${formatText(generatedContent.summary)}
+
+
+🎯 KEY POINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${formatKeyPoints(generatedContent.keyPoints).map((point, i) => `${i + 1}. ${point}`).join('\n\n')}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Generated by Accessibility Learning Hub
+Making education accessible to everyone 🌟
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  `.trim();
+  
+  // Create blob and download
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${fileName.value.replace(/\.[^/.]+$/, '')}_processed.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  // Show success message
+  setTimeout(() => {
+    alert('✅ Downloaded as TXT file!\n\nNote: For PDF format, you can print this file as PDF from your text editor.');
+  }, 100);
+};
 
 const copyToClipboard = async (text) => {
   try {

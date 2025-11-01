@@ -1,17 +1,5 @@
 import { defineStore } from 'pinia';
-import { db } from '../config/firebase';
-import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit as firestoreLimit,
-} from 'firebase/firestore';
+import databaseService from '../services/database.service';
 
 export const useContentStore = defineStore('content', {
   state: () => ({
@@ -30,128 +18,104 @@ export const useContentStore = defineStore('content', {
   },
 
   actions: {
+    /**
+     * Fetch all user content from PostgreSQL database
+     */
     async fetchUserContent(userId) {
       this.loading = true;
       this.error = null;
       try {
-        // Fetch uploads
-        const uploadsRef = collection(db, 'uploads');
-        const uploadsQuery = query(
-          uploadsRef,
-          where('userId', '==', userId),
-          orderBy('createdAt', 'desc')
-        );
-        const uploadsSnapshot = await getDocs(uploadsQuery);
-        this.uploads = uploadsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        // Fetch uploads from database
+        const uploads = await databaseService.getUserUploads(userId);
+        this.uploads = uploads;
 
-        // Fetch processed content
-        const processedRef = collection(db, 'processedContent');
-        const processedQuery = query(
-          processedRef,
-          where('userId', '==', userId),
-          orderBy('createdAt', 'desc')
-        );
-        const processedSnapshot = await getDocs(processedQuery);
-        this.processedContent = processedSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        // Fetch saved content
-        const savedRef = collection(db, 'savedContent');
-        const savedQuery = query(
-          savedRef,
-          where('userId', '==', userId),
-          orderBy('savedAt', 'desc')
-        );
-        const savedSnapshot = await getDocs(savedQuery);
-        this.savedContent = savedSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        // Fetch saved content from database
+        const savedContent = await databaseService.getSavedContent(userId);
+        this.savedContent = savedContent;
 
         return { success: true };
       } catch (error) {
         this.error = error.message;
+        console.error('Fetch user content error:', error);
         return { success: false, error: error.message };
       } finally {
         this.loading = false;
       }
     },
 
-    async saveUpload(userId, file, metadata) {
+    /**
+     * Save upload to PostgreSQL database
+     */
+    async saveUpload(userId, uploadData) {
       try {
-        const uploadData = {
+        const saved = await databaseService.saveUpload({
           userId,
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          metadata: metadata || {},
-          createdAt: new Date().toISOString(),
-          status: 'uploaded',
-        };
-
-        const docRef = await addDoc(collection(db, 'uploads'), uploadData);
-        this.uploads.unshift({ id: docRef.id, ...uploadData });
-        return { success: true, id: docRef.id };
+          ...uploadData,
+        });
+        
+        this.uploads.unshift(saved);
+        return { success: true, data: saved };
       } catch (error) {
+        console.error('Save upload error:', error);
         return { success: false, error: error.message };
       }
     },
 
-    async saveProcessedContent(userId, content) {
+    /**
+     * Save processed content to PostgreSQL database
+     */
+    async saveProcessedContent(userId, contentData) {
       try {
-        const contentData = {
+        const saved = await databaseService.saveContent({
           userId,
-          ...content,
-          createdAt: new Date().toISOString(),
-        };
-
-        const docRef = await addDoc(collection(db, 'processedContent'), contentData);
-        this.processedContent.unshift({ id: docRef.id, ...contentData });
-        return { success: true, id: docRef.id };
-      } catch (error) {
-        return { success: false, error: error.message };
-      }
-    },
-
-    async saveContent(userId, contentId, contentData) {
-      try {
-        const saveData = {
-          userId,
-          contentId,
           ...contentData,
-          savedAt: new Date().toISOString(),
-        };
-
-        const docRef = await addDoc(collection(db, 'savedContent'), saveData);
-        this.savedContent.unshift({ id: docRef.id, ...saveData });
-        return { success: true, id: docRef.id };
+        });
+        
+        this.savedContent.unshift(saved);
+        return { success: true, data: saved };
       } catch (error) {
+        console.error('Save content error:', error);
         return { success: false, error: error.message };
       }
     },
 
-    async deleteContent(contentId, type = 'saved') {
+    /**
+     * Delete saved content from PostgreSQL database
+     */
+    async deleteContent(contentId) {
       try {
-        const collectionName =
-          type === 'saved' ? 'savedContent' : type === 'processed' ? 'processedContent' : 'uploads';
-        await deleteDoc(doc(db, collectionName, contentId));
-
-        // Remove from state
-        if (type === 'saved') {
-          this.savedContent = this.savedContent.filter((c) => c.id !== contentId);
-        } else if (type === 'processed') {
-          this.processedContent = this.processedContent.filter((c) => c.id !== contentId);
-        } else {
-          this.uploads = this.uploads.filter((c) => c.id !== contentId);
-        }
-
+        await databaseService.deleteSavedContent(contentId);
+        this.savedContent = this.savedContent.filter((c) => c.id !== contentId);
         return { success: true };
       } catch (error) {
+        console.error('Delete content error:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    /**
+     * Delete upload from PostgreSQL database
+     */
+    async deleteUpload(uploadId) {
+      try {
+        await databaseService.deleteUpload(uploadId);
+        this.uploads = this.uploads.filter((u) => u.id !== uploadId);
+        return { success: true };
+      } catch (error) {
+        console.error('Delete upload error:', error);
+        return { success: false, error: error.message };
+      }
+    },
+
+    /**
+     * Get user statistics
+     */
+    async fetchUserStats(userId) {
+      try {
+        const stats = await databaseService.getUserStats(userId);
+        return { success: true, data: stats };
+      } catch (error) {
+        console.error('Fetch stats error:', error);
         return { success: false, error: error.message };
       }
     },
@@ -164,7 +128,7 @@ export const useContentStore = defineStore('content', {
       this.currentContent = null;
     },
 
-    // Local storage methods for demo mode (no Firebase)
+    // Local storage methods for demo mode (backward compatibility)
     addUpload(upload) {
       this.uploads.unshift(upload);
     },

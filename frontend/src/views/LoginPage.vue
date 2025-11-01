@@ -10,7 +10,7 @@
             </svg>
           </div>
           <span class="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            AccessiLearn
+            SkillSet AI
           </span>
         </router-link>
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Welcome back!</h2>

@@ -16,7 +16,7 @@
             </svg>
           </div>
           <span class="text-xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            AccessiLearn
+            SkillSet AI
           </span>
         </router-link>
         <button @click="toggleSidebar" class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -44,17 +44,32 @@
       <!-- User Section -->
       <div class="border-t border-gray-200 dark:border-gray-700 p-4">
         <div class="flex items-center space-x-3 px-4 py-3">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-semibold">
-            AL
+          <div v-if="currentUser" class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-semibold">
+            {{ currentUser.displayName?.charAt(0) || currentUser.email?.charAt(0) || 'U' }}
+          </div>
+          <div v-else class="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-              Guest User
+              {{ currentUser?.displayName || currentUser?.email || 'Guest User' }}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-              Demo Mode
+              {{ currentUser?.email || 'Demo Mode' }}
             </p>
           </div>
+          <button 
+            v-if="currentUser"
+            @click="handleLogout"
+            class="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+            title="Logout"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
         </div>
       </div>
     </aside>
@@ -125,12 +140,21 @@
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useThemeStore } from '../stores/theme';
+import { useFirebaseAuth } from '../composables/useFirebaseAuth';
 
 const router = useRouter();
 const route = useRoute();
 const themeStore = useThemeStore();
+const { currentUser, logout } = useFirebaseAuth();
 
 const sidebarOpen = ref(false);
+
+const handleLogout = async () => {
+  const result = await logout();
+  if (result.success) {
+    router.push('/');
+  }
+};
 
 // Navigation items
 const navigation = [

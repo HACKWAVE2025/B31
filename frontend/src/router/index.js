@@ -1,14 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore } from '../stores/auth';
+import { watch } from 'vue';
+import { useFirebaseAuth } from '../composables/useFirebaseAuth';
 
 const routes = [
   {
     path: '/',
-    redirect: '/dashboard',
+    name: 'Home',
+    component: () => import('../views/HomePage.vue'),
   },
   {
     path: '/dashboard',
     component: () => import('../layouts/DashboardLayout.vue'),
+    meta: { requiresAuth: true },
     children: [
       {
         path: '',
@@ -71,8 +74,31 @@ const router = createRouter({
 
 // Navigation guards
 router.beforeEach(async (to, from, next) => {
-  // Skip all authentication - go straight to dashboard
-  next();
+  const { currentUser, isLoading } = useFirebaseAuth();
+  
+  // Wait for auth to initialize
+  if (isLoading.value) {
+    await new Promise(resolve => {
+      const unwatch = watch(isLoading, (loading) => {
+        if (!loading) {
+          unwatch();
+          resolve();
+        }
+      });
+    });
+  }
+
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+  if (requiresAuth && !currentUser.value) {
+    // Redirect to home page if not authenticated
+    next({ name: 'Home' });
+  } else if (to.name === 'Home' && currentUser.value) {
+    // Redirect to dashboard if already logged in and trying to access home
+    next({ name: 'Dashboard' });
+  } else {
+    next();
+  }
 });
 
 export default router;

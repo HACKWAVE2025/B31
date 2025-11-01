@@ -6,8 +6,8 @@ import {
   onAuthStateChanged,
   updateProfile,
 } from 'firebase/auth';
-import { auth, db } from '../config/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth } from '../config/firebase';
+// Removed Firestore - using PostgreSQL via backend API instead
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -27,14 +27,12 @@ export const useAuthStore = defineStore('auth', {
       return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            // Get additional user data from Firestore
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            // Using Firebase Auth only - user data synced to PostgreSQL by useFirebaseAuth
             this.user = {
               uid: user.uid,
               email: user.email,
               displayName: user.displayName,
               photoURL: user.photoURL,
-              ...userDoc.data(),
             };
             this.isAuthenticated = true;
           } else {
@@ -51,13 +49,12 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+        // User data synced to PostgreSQL by useFirebaseAuth composable
         this.user = {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
           photoURL: userCredential.user.photoURL,
-          ...userDoc.data(),
         };
         this.isAuthenticated = true;
         return { success: true };
@@ -78,32 +75,12 @@ export const useAuthStore = defineStore('auth', {
         // Update profile with display name
         await updateProfile(userCredential.user, { displayName: name });
 
-        // Create user document in Firestore
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-          email,
-          displayName: name,
-          createdAt: new Date().toISOString(),
-          preferences: {
-            theme: 'light',
-            fontSize: 'medium',
-            dyslexiaFont: false,
-            highContrast: false,
-            textToSpeech: false,
-          },
-          surveyCompleted: false,
-        });
-
+        // User document created in PostgreSQL by useFirebaseAuth composable (onAuthStateChanged)
         this.user = {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: name,
-          preferences: {
-            theme: 'light',
-            fontSize: 'medium',
-            dyslexiaFont: false,
-            highContrast: false,
-            textToSpeech: false,
-          },
+          photoURL: userCredential.user.photoURL,
         };
         this.isAuthenticated = true;
         return { success: true };
@@ -133,32 +110,21 @@ export const useAuthStore = defineStore('auth', {
     async updateUserPreferences(preferences) {
       if (!this.user) return { success: false, error: 'Not authenticated' };
 
-      try {
-        await setDoc(
-          doc(db, 'users', this.user.uid),
-          { preferences },
-          { merge: true }
-        );
-        this.user.preferences = { ...this.user.preferences, ...preferences };
-        return { success: true };
-      } catch (error) {
-        return { success: false, error: error.message };
+      // Update preferences via PostgreSQL backend (if needed in future)
+      // For now just update local state
+      if (!this.user.preferences) {
+        this.user.preferences = {};
       }
+      this.user.preferences = { ...this.user.preferences, ...preferences };
+      return { success: true };
     },
 
     async markSurveyCompleted() {
       if (!this.user) return;
       
-      try {
-        await setDoc(
-          doc(db, 'users', this.user.uid),
-          { surveyCompleted: true },
-          { merge: true }
-        );
-        this.user.surveyCompleted = true;
-      } catch (error) {
-        console.error('Error marking survey completed:', error);
-      }
+      // Mark survey completed via PostgreSQL backend (if needed in future)
+      // For now just update local state
+      this.user.surveyCompleted = true;
     },
   },
 });

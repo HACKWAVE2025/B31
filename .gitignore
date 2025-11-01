@@ -85,6 +85,9 @@ uploads/
 temp/
 generated/
 
+# Landing page (React version - not used in production)
+landing/
+
 # Firebase
 firebase-debug.log
 .firebase/

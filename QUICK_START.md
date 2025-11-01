@@ -24,7 +24,7 @@ Process ID: Check terminal
 
 You should see:
 - Beautiful gradient landing page
-- "AccessiLearn" branding
+- "SkillSet AI" branding
 - "Transform Learning Materials For Everyone" headline
 - Feature cards
 - Get Started / Sign In buttons

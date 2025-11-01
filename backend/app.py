@@ -5,7 +5,9 @@ Main application entry point
 
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_migrate import Migrate
 from config import config
+from models import db
 import os
 
 def create_app(config_name=None):
@@ -17,10 +19,14 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
-    # Initialize CORS
+    # Initialize database
+    db.init_app(app)
+    migrate = Migrate(app, db)
+    
+    # Initialize CORS - Allow frontend on any localhost port
     CORS(app, resources={
         r"/api/*": {
-            "origins": ["http://localhost:3000", "http://localhost:5173", "http://localhost:8080"],
+            "origins": ["http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:8080"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
             "supports_credentials": True
@@ -30,6 +36,10 @@ def create_app(config_name=None):
     # Initialize app directories
     config[config_name].init_app(app)
     
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+    
     # Register blueprints
     from routes.auth import auth_bp
     from routes.upload import upload_bp
@@ -37,6 +47,7 @@ def create_app(config_name=None):
     from routes.accessibility import accessibility_bp
     from routes.user import user_bp
     from routes.survey import survey_bp
+    from routes.database import db_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(upload_bp, url_prefix='/api/upload')
@@ -44,6 +55,7 @@ def create_app(config_name=None):
     app.register_blueprint(accessibility_bp, url_prefix='/api/accessibility')
     app.register_blueprint(user_bp, url_prefix='/api/user')
     app.register_blueprint(survey_bp, url_prefix='/api/survey')
+    app.register_blueprint(db_bp, url_prefix='/api/db')
     
     # Error handlers
     @app.errorhandler(404)
