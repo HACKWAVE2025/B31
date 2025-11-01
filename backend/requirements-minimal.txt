@@ -1,0 +1,38 @@
+# Minimal requirements for testing the backend
+# Web Framework
+Flask==3.0.0
+Flask-CORS==4.0.0
+python-dotenv==1.0.0
+gunicorn==21.2.0
+
+# Firebase
+firebase-admin==6.2.0
+
+# Document Processing (Basic)
+PyPDF2==3.0.1
+docx2txt==0.8
+python-docx==1.1.0
+pdfplumber==0.10.3
+
+# Image Processing (Basic)
+Pillow>=10.4.0
+
+# Text Processing
+textstat==0.7.3
+nltk==3.8.1
+
+# Web Scraping
+requests==2.31.0
+beautifulsoup4==4.12.2
+html2text==2020.1.16
+validators==0.22.0
+newspaper3k==0.2.8
+
+# Text-to-Speech (Basic - no cloud providers initially)
+gTTS==2.4.0
+
+# Math
+sympy==1.12
+
+# Utils
+werkzeug==3.0.1
