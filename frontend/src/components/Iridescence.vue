@@ -1,9 +1,10 @@
 <template>
-  <div ref="containerRef" class="iridescence-container" :style="containerStyle"></div>
+  <div ref="containerRef" class="iridescence-container"></div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Renderer, Program, Mesh, Color, Triangle } from 'ogl'
 
 const props = defineProps({
   color: {
@@ -26,139 +27,133 @@ const props = defineProps({
 
 const containerRef = ref(null)
 const mousePos = ref({ x: 0.5, y: 0.5 })
-let canvas = null
-let ctx = null
-let animationId = null
-let startTime = Date.now()
 
-const containerStyle = ref({
-  width: '100%',
-  height: '100%',
-  position: 'relative'
-})
+const vertexShader = `
+attribute vec2 uv;
+attribute vec2 position;
 
-const drawIridescence = () => {
-  if (!canvas || !ctx) return
-  
-  const width = canvas.width
-  const height = canvas.height
-  const time = (Date.now() - startTime) * 0.001 * props.speed
-  
-  // Create gradient
-  const imageData = ctx.createImageData(width, height)
-  const data = imageData.data
-  
-  // Get mouse influence
-  const mx = mousePos.value.x
-  const my = mousePos.value.y
-  
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4
-      
-      // Normalize coordinates
-      const nx = (x / width - 0.5) * 2
-      const ny = (y / height - 0.5) * 2
-      
-      // Add mouse influence
-      const mxOffset = (mx - 0.5) * props.amplitude * 2
-      const myOffset = (my - 0.5) * props.amplitude * 2
-      
-      // Calculate waves
-      let wave = 0
-      const d = -time * 0.5
-      let a = 0
-      
-      for (let i = 0; i < 8; i++) {
-        a += Math.cos(i - d - a * (nx + mxOffset))
-        wave += Math.sin((ny + myOffset) * i + a)
-      }
-      
-      // Create color from waves
-      const r = Math.cos(nx * Math.cos(d + wave)) * 0.6 + 0.4
-      const g = Math.cos(ny * Math.cos(a + wave)) * 0.6 + 0.4
-      const b = Math.cos((a + d) * 0.5 + 0.5) * 0.6 + 0.4
-      
-      // Apply color multiplier
-      data[idx] = Math.floor(r * props.color[0] * 255)
-      data[idx + 1] = Math.floor(g * props.color[1] * 255)
-      data[idx + 2] = Math.floor(b * props.color[2] * 255)
-      data[idx + 3] = 255
-    }
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 0, 1);
+}
+`
+
+const fragmentShader = `
+precision highp float;
+
+uniform float uTime;
+uniform vec3 uColor;
+uniform vec3 uResolution;
+uniform vec2 uMouse;
+uniform float uAmplitude;
+uniform float uSpeed;
+
+varying vec2 vUv;
+
+void main() {
+  float mr = min(uResolution.x, uResolution.y);
+  vec2 uv = (vUv.xy * 2.0 - 1.0) * uResolution.xy / mr;
+
+  uv += (uMouse - vec2(0.5)) * uAmplitude;
+
+  float d = -uTime * 0.5 * uSpeed;
+  float a = 0.0;
+  for (float i = 0.0; i < 8.0; ++i) {
+    a += cos(i - d - a * uv.x);
+    d += sin(uv.y * i + a);
   }
-  
-  ctx.putImageData(imageData, 0, 0)
-  animationId = requestAnimationFrame(drawIridescence)
+  d += uTime * 0.5 * uSpeed;
+  vec3 col = vec3(cos(uv * vec2(d, a)) * 0.6 + 0.4, cos(a + d) * 0.5 + 0.5);
+  col = cos(col * cos(vec3(d, a, 2.5)) * 0.5 + 0.5) * uColor;
+  gl_FragColor = vec4(col, 1.0);
 }
-
-const resize = () => {
-  if (!canvas || !containerRef.value) return
-  
-  const scale = 0.5 // Lower resolution for better performance
-  canvas.width = containerRef.value.offsetWidth * scale
-  canvas.height = containerRef.value.offsetHeight * scale
-  canvas.style.width = '100%'
-  canvas.style.height = '100%'
-}
-
-const handleMouseMove = (e) => {
-  if (!props.mouseReact || !containerRef.value) return
-  
-  const rect = containerRef.value.getBoundingClientRect()
-  mousePos.value.x = (e.clientX - rect.left) / rect.width
-  mousePos.value.y = 1.0 - (e.clientY - rect.top) / rect.height
-}
+`
 
 onMounted(() => {
   if (!containerRef.value) return
   
-  // Create canvas
-  canvas = document.createElement('canvas')
-  canvas.style.width = '100%'
-  canvas.style.height = '100%'
-  canvas.style.display = 'block'
+  const ctn = containerRef.value
+  const renderer = new Renderer()
+  const gl = renderer.gl
+  gl.clearColor(1, 1, 1, 1)
+
+  let program
+
+  function resize() {
+    const scale = 1
+    renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale)
+    if (program) {
+      program.uniforms.uResolution.value = new Color(
+        gl.canvas.width,
+        gl.canvas.height,
+        gl.canvas.width / gl.canvas.height
+      )
+    }
+  }
   
-  ctx = canvas.getContext('2d', { willReadFrequently: true })
-  
-  containerRef.value.appendChild(canvas)
-  
-  // Setup
+  window.addEventListener('resize', resize, false)
   resize()
-  window.addEventListener('resize', resize)
+
+  const geometry = new Triangle(gl)
+  program = new Program(gl, {
+    vertex: vertexShader,
+    fragment: fragmentShader,
+    uniforms: {
+      uTime: { value: 0 },
+      uColor: { value: new Color(...props.color) },
+      uResolution: {
+        value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
+      },
+      uMouse: { value: new Float32Array([mousePos.value.x, mousePos.value.y]) },
+      uAmplitude: { value: props.amplitude },
+      uSpeed: { value: props.speed }
+    }
+  })
+
+  const mesh = new Mesh(gl, { geometry, program })
+  let animateId
+
+  function update(t) {
+    animateId = requestAnimationFrame(update)
+    program.uniforms.uTime.value = t * 0.001
+    renderer.render({ scene: mesh })
+  }
+  
+  animateId = requestAnimationFrame(update)
+  ctn.appendChild(gl.canvas)
+
+  function handleMouseMove(e) {
+    const rect = ctn.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width
+    const y = 1.0 - (e.clientY - rect.top) / rect.height
+    mousePos.value = { x, y }
+    program.uniforms.uMouse.value[0] = x
+    program.uniforms.uMouse.value[1] = y
+  }
   
   if (props.mouseReact) {
-    containerRef.value.addEventListener('mousemove', handleMouseMove)
+    ctn.addEventListener('mousemove', handleMouseMove)
   }
-  
-  // Start animation
-  drawIridescence()
-})
 
-onUnmounted(() => {
-  if (animationId) {
-    cancelAnimationFrame(animationId)
-  }
-  
-  window.removeEventListener('resize', resize)
-  
-  if (containerRef.value && props.mouseReact) {
-    containerRef.value.removeEventListener('mousemove', handleMouseMove)
-  }
-  
-  if (canvas && containerRef.value && containerRef.value.contains(canvas)) {
-    containerRef.value.removeChild(canvas)
-  }
+  onUnmounted(() => {
+    cancelAnimationFrame(animateId)
+    window.removeEventListener('resize', resize)
+    if (props.mouseReact) {
+      ctn.removeEventListener('mousemove', handleMouseMove)
+    }
+    if (ctn.contains(gl.canvas)) {
+      ctn.removeChild(gl.canvas)
+    }
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+  })
 })
-
-watch(() => [props.color, props.speed, props.amplitude, props.mouseReact], () => {
-  // Animation will pick up new values automatically
-}, { deep: true })
 </script>
 
 <style scoped>
 .iridescence-container {
   width: 100%;
   height: 100%;
-  position: relative;
 }
 </style>

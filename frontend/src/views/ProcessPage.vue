@@ -112,8 +112,40 @@
       </button>
     </div>
 
-    <!-- Step 2: AI Processing -->
-    <div v-if="currentStep === 1" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-fade-in">
+    <!-- Step 2: Additional Context Dialog -->
+    <div v-if="currentStep === 1 && showContextDialog" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-fade-in">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">💬 Anything else to add?</h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        Help our AI understand your content better. Add any context, specific questions, or areas you'd like us to focus on.
+      </p>
+      
+      <div class="space-y-4">
+        <textarea
+          v-model="additionalContext"
+          rows="5"
+          placeholder="Example: Focus on the section about chemical reactions. I need help understanding how enzymes work..."
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 resize-none"
+        ></textarea>
+        
+        <div class="flex gap-4">
+          <button
+            @click="skipContext"
+            class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+          >
+            Skip
+          </button>
+          <button
+            @click="nextStep"
+            class="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+          >
+            Continue to AI Processing →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: AI Processing -->
+    <div v-if="currentStep === 2" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-fade-in">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">🤖 Processing with Gemini AI</h2>
       
       <div class="space-y-4">
@@ -148,8 +180,8 @@
       </div>
     </div>
 
-    <!-- Step 3: Generated Content -->
-    <div v-if="currentStep === 2" class="space-y-6 animate-fade-in">
+    <!-- Step 4: Generated Content -->
+    <div v-if="currentStep === 3" class="space-y-6 animate-fade-in">
       <!-- Success Banner -->
       <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center space-x-4">
@@ -234,6 +266,42 @@
         </div>
       </div>
 
+      <!-- Flashcards -->
+      <div v-if="generatedContent.flashcards && generatedContent.flashcards.length > 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div class="bg-gradient-to-r from-green-500 to-teal-600 px-6 py-4">
+          <h2 class="text-xl font-bold text-white flex items-center">
+            <span class="mr-2">🎴</span> Study Flashcards
+            <span class="ml-3 px-3 py-1 bg-white/20 rounded-full text-sm">
+              {{ generatedContent.flashcards.length }} cards
+            </span>
+          </h2>
+        </div>
+        <div class="p-6">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            Generated based on your learning goal: "{{ survey.learningGoal }}"
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div 
+              v-for="(card, index) in generatedContent.flashcards" 
+              :key="index" 
+              class="bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-xl p-6 border-2 border-green-200 dark:border-green-700 hover:shadow-lg transition-all cursor-pointer"
+              @click="card.flipped = !card.flipped"
+            >
+              <div v-if="!card.flipped">
+                <p class="text-xs font-semibold text-green-600 dark:text-green-400 mb-2">QUESTION {{ index + 1 }}</p>
+                <p class="text-gray-800 dark:text-gray-200 font-medium">{{ card.question }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">Click to reveal answer</p>
+              </div>
+              <div v-else>
+                <p class="text-xs font-semibold text-teal-600 dark:text-teal-400 mb-2">ANSWER</p>
+                <p class="text-gray-800 dark:text-gray-200">{{ card.answer }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">Click to show question</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Action Buttons -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <button
@@ -272,13 +340,16 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useContentStore } from '../stores/content';
+import { useAuthStore } from '../stores/auth';
 import geminiService from '../services/gemini.service';
+import databaseService from '../services/database.service';
 
 const route = useRoute();
 const router = useRouter();
 const contentStore = useContentStore();
+const authStore = useAuthStore();
 
-const steps = ['Survey', 'AI Processing', 'Results'];
+const steps = ['Survey', 'Additional Context', 'AI Processing', 'Results'];
 const currentStep = ref(0);
 
 const survey = reactive({
@@ -292,6 +363,9 @@ const survey = reactive({
   contentType: 'educational',
   learningGoal: ''
 });
+
+const additionalContext = ref('');
+const showContextDialog = ref(false);
 
 const processingSteps = ref([
   { name: 'Reading Document', description: 'Extracting text content...', status: 'pending' },
@@ -307,6 +381,7 @@ const generatedContent = reactive({
   simplified: '',
   summary: '',
   keyPoints: [],
+  flashcards: [],
   original: ''
 });
 
@@ -331,15 +406,48 @@ onMounted(async () => {
   } else {
     console.error('❌ No uploads found in store');
   }
+
+  // Load user survey data if available
+  if (authStore.user?.surveyData) {
+    Object.assign(survey, authStore.user.surveyData);
+    // Skip survey step if already completed
+    if (authStore.user.surveyCompleted) {
+      currentStep.value = 1; // Go to Additional Context step
+      showContextDialog.value = true;
+    }
+  }
 });
 
 const nextStep = async () => {
   if (currentStep.value === 0) {
+    // Save survey data
+    try {
+      await databaseService.updateUserSurvey(authStore.user.uid, {
+        ...survey,
+        completedAt: new Date().toISOString()
+      });
+      authStore.user.surveyData = survey;
+      authStore.user.surveyCompleted = true;
+    } catch (error) {
+      console.error('Failed to save survey:', error);
+    }
     currentStep.value = 1;
-    await processWithAI();
-  } else if (currentStep.value === 1 && processingComplete.value) {
+    showContextDialog.value = true;
+  } else if (currentStep.value === 1) {
+    // User provided additional context (or skipped)
+    showContextDialog.value = false;
     currentStep.value = 2;
+    await processWithAI();
+  } else if (currentStep.value === 2 && processingComplete.value) {
+    currentStep.value = 3;
   }
+};
+
+const skipContext = () => {
+  additionalContext.value = '';
+  showContextDialog.value = false;
+  currentStep.value = 2;
+  processWithAI();
 };
 
 const processWithAI = async () => {
@@ -348,26 +456,42 @@ const processWithAI = async () => {
     await delay(1000);
     processingSteps.value[0].status = 'complete';
 
+    // Build context from survey and additional input
+    const userContext = `
+User Learning Goal: ${survey.learningGoal}
+Content Type: ${survey.contentType}
+${additionalContext.value ? `Additional Context: ${additionalContext.value}` : ''}
+    `.trim();
+
     processingSteps.value[1].status = 'processing';
     const simplified = await geminiService.simplifyText(
       fileContent.value,
-      survey.readingLevel
+      survey.readingLevel,
+      userContext  // Pass user context to Gemini
     );
-    generatedContent.simplified = simplified;
+    generatedContent.simplified = simplified.simplifiedText || simplified;
     processingSteps.value[1].status = 'complete';
 
     processingSteps.value[2].status = 'processing';
-    const summary = await geminiService.generateSummary(fileContent.value, 150);
-    generatedContent.summary = summary;
+    const summary = await geminiService.generateSummary(fileContent.value, 150, userContext);
+    generatedContent.summary = summary.summary || summary;
     processingSteps.value[2].status = 'complete';
 
     processingSteps.value[3].status = 'processing';
-    const keyPoints = await geminiService.extractKeyPoints(fileContent.value, 5);
-    generatedContent.keyPoints = keyPoints;
+    const keyPoints = await geminiService.extractKeyPoints(fileContent.value, 5, userContext);
+    generatedContent.keyPoints = keyPoints.keyPoints || keyPoints;
     processingSteps.value[3].status = 'complete';
 
+    // NEW: Generate flashcards based on learning goal
+    processingSteps.value[4].name = 'Generating Flashcards';
+    processingSteps.value[4].description = 'Creating study materials for your learning goal...';
     processingSteps.value[4].status = 'processing';
-    await delay(500);
+    const flashcards = await geminiService.generateFlashcards(
+      fileContent.value, 
+      survey.learningGoal,
+      survey.readingLevel
+    );
+    generatedContent.flashcards = flashcards.flashcards || [];
     processingSteps.value[4].status = 'complete';
 
     processingComplete.value = true;
@@ -554,17 +678,24 @@ const copyToClipboard = async (text) => {
   }
 };
 
-const saveContent = () => {
-  contentStore.addSavedContent({
-    id: Date.now().toString(),
-    fileName: fileName.value,
-    simplified: generatedContent.simplified,
-    summary: generatedContent.summary,
-    keyPoints: generatedContent.keyPoints,
-    savedAt: new Date().toISOString()
-  });
-  alert('✅ Content saved successfully!');
-  router.push('/dashboard/saved');
+const saveContent = async () => {
+  try {
+    await contentStore.saveProcessedContent(authStore.user.uid, {
+      id: Date.now().toString(),
+      fileName: fileName.value,
+      originalText: fileContent.value,
+      simplifiedText: generatedContent.simplified,
+      summary: generatedContent.summary,
+      keyPoints: generatedContent.keyPoints,
+      readingLevel: survey.readingLevel,
+      contentType: survey.contentType
+    });
+    alert('✅ Content saved successfully!');
+    router.push('/dashboard/saved');
+  } catch (error) {
+    console.error('Save failed:', error);
+    alert('❌ Failed to save content. Please try again.');
+  }
 };
 
 const startOver = () => {

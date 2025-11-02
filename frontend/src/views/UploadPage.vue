@@ -1,22 +1,33 @@
 <template>
-  <div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Upload Learning Material</h1>
-      <p class="text-gray-600 dark:text-gray-400">Upload documents or provide a URL to make content accessible</p>
+  <div class="max-w-4xl mx-auto px-6 py-12">
+    <div class="mb-12">
+      <h1 class="font-sora font-bold text-4xl mb-3 transition-colors duration-500" :style="{ color: textColor }">Upload Learning Material</h1>
+      <p class="font-inter text-lg transition-colors duration-500" :style="{ color: secondaryTextColor }">Upload documents or provide a URL to make content accessible</p>
     </div>
 
     <!-- Upload Tabs -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="rounded-3xl shadow-xl overflow-hidden transition-all duration-500"
+      :style="{
+        background: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+      }">
       <!-- Tab Headers -->
-      <div class="flex border-b border-gray-200 dark:border-gray-700">
+      <div class="flex transition-colors duration-500"
+        :style="{ borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)' }">
         <button
           @click="activeTab = 'file'"
           :class="[
-            'flex-1 px-6 py-4 text-sm font-semibold transition-all',
-            activeTab === 'file'
-              ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-b-2 border-primary-600'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+            'flex-1 px-6 py-4 text-sm font-inter font-semibold transition-all duration-300',
+            activeTab === 'file' && 'border-b-2'
           ]"
+          :style="{
+            background: activeTab === 'file' 
+              ? (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)')
+              : 'transparent',
+            color: textColor,
+            borderColor: activeTab === 'file' ? textColor : 'transparent'
+          }"
         >
           <div class="flex items-center justify-center space-x-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,11 +39,16 @@
         <button
           @click="activeTab = 'url'"
           :class="[
-            'flex-1 px-6 py-4 text-sm font-semibold transition-all',
-            activeTab === 'url'
-              ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-b-2 border-primary-600'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+            'flex-1 px-6 py-4 text-sm font-inter font-semibold transition-all duration-300',
+            activeTab === 'url' && 'border-b-2'
           ]"
+          :style="{
+            background: activeTab === 'url' 
+              ? (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)')
+              : 'transparent',
+            color: textColor,
+            borderColor: activeTab === 'url' ? textColor : 'transparent'
+          }"
         >
           <div class="flex items-center justify-center space-x-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,11 +68,17 @@
             @dragleave.prevent="isDragging = false"
             @drop.prevent="handleDrop"
             :class="[
-              'border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer',
-              isDragging
-                ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500'
+              'border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer duration-300'
             ]"
+            :style="{
+              background: isDragging
+                ? (isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
+                : (isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'),
+              borderColor: isDragging
+                ? textColor
+                : (isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'),
+              backdropFilter: 'blur(10px)'
+            }"
             @click="$refs.fileInput.click()"
           >
             <input
@@ -68,42 +90,69 @@
             />
 
             <div v-if="!selectedFile">
-              <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" :style="{ color: secondaryTextColor }">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 class="font-sora font-bold text-xl mb-2 transition-colors duration-500" :style="{ color: textColor }">
                 Drop your file here or click to browse
               </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <p class="font-inter text-sm mb-6 transition-colors duration-500" :style="{ color: secondaryTextColor }">
                 Supports PDF, DOCX, TXT, PPTX, and images (max 50MB)
               </p>
-              <div class="flex flex-wrap justify-center gap-2 mt-4">
-                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full">.pdf</span>
-                <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-medium rounded-full">.docx</span>
-                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full">.txt</span>
-                <span class="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs font-medium rounded-full">.pptx</span>
-                <span class="px-3 py-1 bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 text-xs font-medium rounded-full">.jpg/.png</span>
+              <div class="flex flex-wrap justify-center gap-3 mt-4">
+                <span class="px-4 py-2 rounded-full text-xs font-inter font-semibold transition-all duration-300"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    color: textColor
+                  }">.pdf</span>
+                <span class="px-4 py-2 rounded-full text-xs font-inter font-semibold transition-all duration-300"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    color: textColor
+                  }">.docx</span>
+                <span class="px-4 py-2 rounded-full text-xs font-inter font-semibold transition-all duration-300"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    color: textColor
+                  }">.txt</span>
+                <span class="px-4 py-2 rounded-full text-xs font-inter font-semibold transition-all duration-300"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    color: textColor
+                  }">.pptx</span>
+                <span class="px-4 py-2 rounded-full text-xs font-inter font-semibold transition-all duration-300"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    color: textColor
+                  }">.jpg/.png</span>
               </div>
             </div>
 
             <!-- Selected File Preview -->
-            <div v-else class="flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+            <div v-else class="flex items-center justify-between rounded-xl p-6 transition-all duration-300"
+              :style="{
+                background: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'
+              }">
               <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                  }">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :style="{ color: textColor }">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div class="text-left">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ selectedFile.name }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatFileSize(selectedFile.size) }}</p>
+                  <p class="font-inter text-sm font-semibold transition-colors duration-500" :style="{ color: textColor }">{{ selectedFile.name }}</p>
+                  <p class="font-inter text-xs transition-colors duration-500" :style="{ color: secondaryTextColor }">{{ formatFileSize(selectedFile.size) }}</p>
                 </div>
               </div>
               <button
                 @click.stop="clearFile"
-                class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                class="transition-colors duration-300 hover:opacity-70"
+                :style="{ color: secondaryTextColor }"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -114,18 +163,23 @@
         <!-- URL Tab -->
         <div v-show="activeTab === 'url'" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label class="block font-inter text-sm font-semibold mb-3 transition-colors duration-500" :style="{ color: textColor }">
               Enter URL
             </label>
             <input
               v-model="urlInput"
               type="url"
               placeholder="https://example.com/article"
-              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              class="w-full px-5 py-4 rounded-xl font-inter text-sm transition-all duration-300 focus:ring-2 focus:outline-none"
+              :style="{
+                background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                color: textColor
+              }"
             />
           </div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <p class="font-inter text-sm flex items-center gap-2 transition-colors duration-500" :style="{ color: secondaryTextColor }">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             We'll extract and process the content from the webpage
@@ -133,23 +187,37 @@
         </div>
 
         <!-- Error Message -->
-        <div v-if="error" class="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg">
-          <p class="text-sm">{{ error }}</p>
+        <div v-if="error" class="mt-6 rounded-xl px-5 py-4 transition-all duration-300"
+          :style="{
+            background: isDark ? 'rgba(255, 100, 100, 0.1)' : 'rgba(255, 100, 100, 0.1)',
+            border: isDark ? '1px solid rgba(255, 100, 100, 0.3)' : '1px solid rgba(255, 100, 100, 0.3)',
+            color: isDark ? 'rgba(255, 150, 150, 1)' : 'rgba(200, 50, 50, 1)'
+          }">
+          <p class="font-inter text-sm">{{ error }}</p>
         </div>
 
         <!-- Upload Button -->
-        <div class="mt-6 flex justify-end space-x-4">
+        <div class="mt-8 flex justify-end space-x-4">
           <button
             v-if="selectedFile || urlInput"
             @click="clearAll"
-            class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+            class="px-6 py-3 rounded-xl font-inter font-semibold transition-all duration-300 hover:scale-[1.02]"
+            :style="{
+              background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.2)',
+              color: textColor
+            }"
           >
             Cancel
           </button>
           <button
             @click="handleUpload"
             :disabled="(!selectedFile && !urlInput) || uploading"
-            class="px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            class="px-8 py-3 rounded-xl font-inter font-semibold transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            :style="{
+              background: isDark ? '#ffffff' : '#000000',
+              color: isDark ? '#000000' : '#ffffff'
+            }"
           >
             <span v-if="uploading" class="flex items-center">
               <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -165,17 +233,26 @@
     </div>
 
     <!-- Upload Progress -->
-    <div v-if="uploading" class="mt-6 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
+    <div v-if="uploading" class="mt-8 rounded-3xl p-8 shadow-xl transition-all duration-500"
+      :style="{
+        background: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+      }">
       <div class="flex items-center space-x-4">
         <div class="flex-1">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Uploading...</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400">{{ uploadProgress }}%</span>
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-inter text-sm font-semibold transition-colors duration-500" :style="{ color: textColor }">Uploading...</span>
+            <span class="font-inter text-sm transition-colors duration-500" :style="{ color: secondaryTextColor }">{{ uploadProgress }}%</span>
           </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div class="w-full rounded-full h-2 transition-all duration-300"
+            :style="{ background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }">
             <div
-              class="bg-gradient-to-r from-primary-600 to-accent-600 h-2 rounded-full transition-all duration-300"
-              :style="{ width: uploadProgress + '%' }"
+              class="h-2 rounded-full transition-all duration-300"
+              :style="{ 
+                width: uploadProgress + '%',
+                background: isDark ? '#ffffff' : '#000000'
+              }"
             ></div>
           </div>
         </div>
@@ -185,8 +262,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useDark } from '@vueuse/core';
 import { useAuthStore } from '../stores/auth';
 import { useContentStore } from '../stores/content';
 import { apiService } from '../services/api.service';
@@ -194,6 +272,10 @@ import { apiService } from '../services/api.service';
 const router = useRouter();
 const authStore = useAuthStore();
 const contentStore = useContentStore();
+const isDark = useDark();
+
+const textColor = computed(() => isDark.value ? '#ffffff' : '#000000');
+const secondaryTextColor = computed(() => isDark.value ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)');
 
 const activeTab = ref('file');
 const isDragging = ref(false);
@@ -202,6 +284,14 @@ const urlInput = ref('');
 const uploading = ref(false);
 const uploadProgress = ref(0);
 const error = ref(null);
+
+// Check if user has completed survey
+onMounted(() => {
+  if (authStore.user && !authStore.user.surveyCompleted) {
+    alert('📋 Please complete the survey first to personalize your learning experience!');
+    router.push('/dashboard/survey');
+  }
+});
 
 const handleFileSelect = (event) => {
   const file = event.target.files[0];

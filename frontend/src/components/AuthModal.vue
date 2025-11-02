@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="true" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="closeModal">
+      <div v-if="modelValue" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="closeModal">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
 
@@ -154,7 +154,14 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFirebaseAuth } from '../composables/useFirebaseAuth';
 
-const emit = defineEmits(['close']);
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false
+  }
+});
+
+const emit = defineEmits(['close', 'update:modelValue']);
 const router = useRouter();
 
 const { signUp, signIn, signInWithGoogle, validateEmail, validatePassword, getPasswordErrors } = useFirebaseAuth();
@@ -280,6 +287,7 @@ const toggleAuthMode = () => {
 };
 
 const closeModal = () => {
+  emit('update:modelValue', false);
   emit('close');
 };
 </script>

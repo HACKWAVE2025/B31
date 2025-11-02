@@ -1,48 +1,66 @@
 <template>
-  <div class="max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">💾 Saved Content</h1>
-      <p class="text-gray-600 dark:text-gray-400">{{ savedContent.length }} saved items</p>
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="flex items-center justify-between mb-12">
+      <h1 class="font-sora font-bold text-4xl transition-colors duration-500" :style="{ color: textColor }">Saved Content</h1>
+      <p class="font-inter text-lg transition-colors duration-500" :style="{ color: secondaryTextColor }">{{ savedContent.length }} saved items</p>
     </div>
 
     <!-- Empty State -->
-    <div v-if="savedContent.length === 0" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
-      <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div v-if="savedContent.length === 0" class="rounded-3xl shadow-xl p-16 text-center transition-all duration-500"
+      :style="{
+        background: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+      }">
+      <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-300"
+        :style="{
+          background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+        }">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" :style="{ color: secondaryTextColor }">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
         </svg>
       </div>
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">No saved content yet</h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">Process some files and save your favorites!</p>
+      <h2 class="font-sora font-bold text-3xl mb-3 transition-colors duration-500" :style="{ color: textColor }">No saved content yet</h2>
+      <p class="font-inter text-lg mb-8 transition-colors duration-500" :style="{ color: secondaryTextColor }">Process some files and save your favorites!</p>
       <router-link
         to="/dashboard/upload"
-        class="inline-block px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+        class="inline-block px-8 py-4 rounded-xl font-inter font-semibold transition-all duration-300 hover:scale-[1.02]"
+        :style="{
+          background: isDark ? '#ffffff' : '#000000',
+          color: isDark ? '#000000' : '#ffffff'
+        }"
       >
         Upload a File
       </router-link>
     </div>
 
     <!-- Saved Items Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div
         v-for="item in savedContent"
         :key="item.id"
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all cursor-pointer"
+        class="rounded-3xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer hover:scale-[1.02]"
+        :style="{
+          background: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(20px)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+        }"
         @click="viewContent(item)"
       >
         <!-- Header -->
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between mb-6">
           <div class="flex-1">
-            <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1 line-clamp-1">
+            <h3 class="font-sora font-bold text-xl mb-2 line-clamp-1 transition-colors duration-500" :style="{ color: textColor }">
               {{ item.fileName }}
             </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="font-inter text-sm transition-colors duration-500" :style="{ color: secondaryTextColor }">
               {{ formatDate(item.savedAt) }}
             </p>
           </div>
           <button
             @click.stop="deleteItem(item.id)"
-            class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            class="transition-colors duration-300 hover:opacity-70"
+            :style="{ color: secondaryTextColor }"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -51,15 +69,15 @@
         </div>
 
         <!-- Summary Preview -->
-        <div class="mb-4">
-          <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
+        <div class="mb-6">
+          <p class="font-inter text-sm leading-relaxed line-clamp-3 transition-colors duration-500" :style="{ color: secondaryTextColor }">
             {{ item.summary }}
           </p>
         </div>
 
         <!-- Key Points Badge -->
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+          <div class="flex items-center space-x-2 font-inter text-sm transition-colors duration-500" :style="{ color: secondaryTextColor }">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
@@ -67,7 +85,8 @@
           </div>
           <button
             @click.stop="viewContent(item)"
-            class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium text-sm"
+            class="font-inter font-semibold text-sm hover:opacity-70 transition-all duration-300"
+            :style="{ color: textColor }"
           >
             View →
           </button>
@@ -78,29 +97,41 @@
     <!-- Content Modal -->
     <div
       v-if="selectedContent"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      :style="{ background: 'rgba(0, 0, 0, 0.7)' }"
       @click="closeModal"
     >
       <div
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        class="rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transition-all duration-500"
+        :style="{
+          background: isDark ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+        }"
         @click.stop
       >
         <!-- Modal Header -->
-        <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
+        <div class="sticky top-0 p-8 transition-colors duration-500"
+          :style="{
+            background: isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+          }">
           <div class="flex items-start justify-between">
             <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+              <h2 class="font-sora font-bold text-3xl mb-2 transition-colors duration-500" :style="{ color: textColor }">
                 {{ selectedContent.fileName }}
               </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
+              <p class="font-inter text-sm transition-colors duration-500" :style="{ color: secondaryTextColor }">
                 Saved {{ formatDate(selectedContent.savedAt) }}
               </p>
             </div>
             <button
               @click="closeModal"
-              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              class="transition-colors duration-300 hover:opacity-70"
+              :style="{ color: secondaryTextColor }"
             >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -108,53 +139,79 @@
         </div>
 
         <!-- Modal Content -->
-        <div class="p-6 space-y-6">
+        <div class="p-8 space-y-8">
           <!-- Simplified Text -->
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">✨ Simplified Content</h3>
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-              <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ selectedContent.simplified }}</p>
+            <h3 class="font-sora font-bold text-xl mb-4 transition-colors duration-500" :style="{ color: textColor }">Simplified Content</h3>
+            <div class="rounded-2xl p-6 transition-all duration-300"
+              :style="{
+                background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+              }">
+              <p class="font-inter text-sm leading-relaxed whitespace-pre-wrap transition-colors duration-500" :style="{ color: secondaryTextColor }">{{ selectedContent.simplified }}</p>
             </div>
           </div>
 
           <!-- Summary -->
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">📝 Summary</h3>
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-              <p class="text-gray-700 dark:text-gray-300">{{ selectedContent.summary }}</p>
+            <h3 class="font-sora font-bold text-xl mb-4 transition-colors duration-500" :style="{ color: textColor }">Summary</h3>
+            <div class="rounded-2xl p-6 transition-all duration-300"
+              :style="{
+                background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+              }">
+              <p class="font-inter text-sm leading-relaxed transition-colors duration-500" :style="{ color: secondaryTextColor }">{{ selectedContent.summary }}</p>
             </div>
           </div>
 
           <!-- Key Points -->
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">🎯 Key Points</h3>
-            <ul class="space-y-2">
+            <h3 class="font-sora font-bold text-xl mb-4 transition-colors duration-500" :style="{ color: textColor }">Key Points</h3>
+            <ul class="space-y-3">
               <li
                 v-for="(point, index) in selectedContent.keyPoints"
                 :key="index"
-                class="flex items-start space-x-3 bg-gray-50 dark:bg-gray-900 rounded-lg p-3"
+                class="flex items-start space-x-4 rounded-2xl p-4 transition-all duration-300"
+                :style="{
+                  background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                }"
               >
-                <span class="w-6 h-6 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">
+                <span class="w-8 h-8 rounded-full flex items-center justify-center font-inter font-bold text-sm flex-shrink-0 transition-all duration-300"
+                  :style="{
+                    background: isDark ? '#ffffff' : '#000000',
+                    color: isDark ? '#000000' : '#ffffff'
+                  }">
                   {{ index + 1 }}
                 </span>
-                <span class="text-gray-700 dark:text-gray-300">{{ point }}</span>
+                <span class="font-inter text-sm leading-relaxed transition-colors duration-500" :style="{ color: secondaryTextColor }">{{ point }}</span>
               </li>
             </ul>
           </div>
         </div>
 
         <!-- Modal Footer -->
-        <div class="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6">
+        <div class="sticky bottom-0 p-8 transition-colors duration-500"
+          :style="{
+            background: isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(20px)',
+            borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+          }">
           <div class="flex space-x-4">
             <button
               @click="copyAllContent"
-              class="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+              class="flex-1 px-8 py-4 rounded-xl font-inter font-semibold transition-all duration-300 hover:scale-[1.02]"
+              :style="{
+                background: isDark ? '#ffffff' : '#000000',
+                color: isDark ? '#000000' : '#ffffff'
+              }"
             >
               📋 Copy All
             </button>
             <button
               @click="closeModal"
-              class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+              class="flex-1 px-8 py-4 rounded-xl font-inter font-semibold transition-all duration-300 hover:scale-[1.02]"
+              :style="{
+                background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                color: textColor
+              }"
             >
               Close
             </button>
@@ -166,18 +223,36 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useDark } from '@vueuse/core';
 import { useContentStore } from '../stores/content';
+import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
 
 const contentStore = useContentStore();
+const authStore = useAuthStore();
 const router = useRouter();
+const isDark = useDark();
+
+const textColor = computed(() => isDark.value ? '#ffffff' : '#000000');
+const secondaryTextColor = computed(() => isDark.value ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)');
 
 const savedContent = computed(() => contentStore.savedContent);
 const selectedContent = ref(null);
 
+// Fetch saved content from database on mount
+onMounted(async () => {
+  if (authStore.user?.uid) {
+    await contentStore.fetchUserContent(authStore.user.uid);
+  }
+});
+
+
 const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown date';
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Invalid date';
+  
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
@@ -200,9 +275,9 @@ const closeModal = () => {
   selectedContent.value = null;
 };
 
-const deleteItem = (id) => {
+const deleteItem = async (id) => {
   if (confirm('Are you sure you want to delete this saved content?')) {
-    contentStore.removeSavedContent(id);
+    await contentStore.deleteContent(id);
   }
 };
 

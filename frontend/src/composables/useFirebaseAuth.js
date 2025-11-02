@@ -35,13 +35,13 @@ const isLoading = ref(true);
 
 // Listen to auth state changes
 onAuthStateChanged(auth, async (user) => {
-  currentUser.value = user;
   isLoading.value = false;
   
   // Sync with PostgreSQL database when user logs in (skip if backend offline)
   if (user) {
     try {
-      const response = await axios.post('http://localhost:5001/api/db/users', {
+      // First, ensure user exists in database (create or update)
+      await axios.post('http://localhost:5001/api/db/users', {
         id: user.uid,
         email: user.email,
         displayName: user.displayName || user.email.split('@')[0]
@@ -49,14 +49,31 @@ onAuthStateChanged(auth, async (user) => {
         timeout: 3000 // 3 second timeout
       });
       console.log('✅ User synced to PostgreSQL:', user.uid);
+      
+      // Then, fetch the full user data including surveyCompleted status
+      const userDataResponse = await axios.get(`http://localhost:5001/api/db/users/${user.uid}`, {
+        timeout: 3000
+      });
+      
+      // Merge Firebase Auth data with PostgreSQL data
+      currentUser.value = {
+        ...user,
+        surveyCompleted: userDataResponse.data.surveyCompleted || false,
+        surveyData: userDataResponse.data.surveyData || null
+      };
+      console.log('✅ User data fetched - Survey completed:', userDataResponse.data.surveyCompleted);
     } catch (error) {
       // Silently fail if backend is not running - auth still works
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
         console.warn('⚠️ Backend offline - user auth works, but data not synced to PostgreSQL');
+        currentUser.value = user;
       } else {
         console.error('❌ Failed to sync user to database:', error.message);
+        currentUser.value = user;
       }
     }
+  } else {
+    currentUser.value = null;
   }
 });
 
@@ -83,21 +100,30 @@ export function useFirebaseAuth() {
   // Sign up with email and password
   const signUp = async (name, email, password) => {
     try {
+      console.log('🔵 Creating user account...');
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('✅ User created:', userCredential.user.uid);
       
       await updateProfile(userCredential.user, {
         displayName: name
       });
+      console.log('✅ Profile updated with name:', name);
 
       // Sync to PostgreSQL
-      await axios.post('http://localhost:5001/api/db/users', {
-        id: userCredential.user.uid,
-        email: userCredential.user.email,
-        displayName: name
-      });
+      try {
+        await axios.post('http://localhost:5001/api/db/users', {
+          id: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: name
+        });
+        console.log('✅ User synced to database');
+      } catch (dbError) {
+        console.warn('⚠️ Database sync failed (auth still works):', dbError.message);
+      }
 
       return { success: true, user: userCredential.user };
     } catch (error) {
+      console.error('❌ Sign-up error:', error);
       let errorMessage = "Something went wrong. Please try again.";
       
       if (error.code === 'auth/email-already-in-use') {
@@ -105,7 +131,9 @@ export function useFirebaseAuth() {
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "Invalid email address.";
       } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Password is too weak.";
+        errorMessage = "Password is too weak. Use at least 8 characters with numbers and special characters.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Email/password sign-up is not enabled. Please contact support.";
       }
       
       return { success: false, error: errorMessage };
@@ -115,9 +143,12 @@ export function useFirebaseAuth() {
   // Sign in with email and password
   const signIn = async (email, password) => {
     try {
+      console.log('🔵 Signing in user...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('✅ Sign-in successful:', userCredential.user.email);
       return { success: true, user: userCredential.user };
     } catch (error) {
+      console.error('❌ Sign-in error:', error);
       let errorMessage = "Invalid email or password.";
       
       if (error.code === 'auth/user-not-found') {
@@ -128,6 +159,10 @@ export function useFirebaseAuth() {
         errorMessage = "Invalid email address.";
       } else if (error.code === 'auth/user-disabled') {
         errorMessage = "This account has been disabled.";
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = "Invalid email or password.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
       }
       
       return { success: false, error: errorMessage };
@@ -137,23 +172,42 @@ export function useFirebaseAuth() {
   // Sign in with Google
   const signInWithGoogle = async () => {
     try {
+      // Configure Google provider
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      console.log('🔵 Initiating Google sign-in...');
       const result = await signInWithPopup(auth, googleProvider);
+      console.log('✅ Google sign-in successful:', result.user.email);
       
       // Sync to PostgreSQL
-      await axios.post('http://localhost:5001/api/db/users', {
-        id: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName
-      });
+      try {
+        await axios.post('http://localhost:5001/api/db/users', {
+          id: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName
+        });
+        console.log('✅ User synced to database');
+      } catch (dbError) {
+        console.warn('⚠️ Database sync failed (auth still works):', dbError.message);
+      }
 
       return { success: true, user: result.user };
     } catch (error) {
+      console.error('❌ Google sign-in error:', error);
       let errorMessage = "Failed to sign in with Google.";
       
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign in popup was closed.";
       } else if (error.code === 'auth/cancelled-popup-request') {
         errorMessage = "Sign in was cancelled.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Popup was blocked by browser. Please allow popups for this site.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for Google sign-in. Please add it in Firebase Console.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please enable it in Firebase Console.";
       }
       
       return { success: false, error: errorMessage };

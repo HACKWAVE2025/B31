@@ -11,31 +11,41 @@
     <div
       v-for="(item, idx) in items"
       :key="idx"
-      :class="['bounce-card', `bounce-card-${idx}`, 'transition-colors', 'duration-500']"
+      :class="['bounce-card', `bounce-card-${idx}`, 'transition-colors', 'duration-500', { 'has-image': item.image }]"
       :style="{
-        transform: transformStyles[idx] ?? 'none',
         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.2)',
-        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.5)',
+        background: item.image ? 'transparent' : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.5)'),
         boxShadow: isDark ? '0 10px 30px rgba(128, 128, 128, 0.1)' : '0 10px 30px rgba(0, 0, 0, 0.15)'
       }"
       @mouseenter="() => pushSiblings(idx)"
       @mouseleave="resetSiblings"
     >
-      <!-- Icon -->
-      <div class="bounce-card-icon transition-colors duration-500">
-        <component :is="item.icon" v-if="typeof item.icon === 'object'" />
-        <span v-else v-html="item.icon"></span>
-      </div>
+      <!-- Image Card (if image provided) -->
+      <img 
+        v-if="item.image" 
+        :src="item.image" 
+        :alt="item.title || `card-${idx}`"
+        class="bounce-card-image"
+      />
       
-      <!-- Title -->
-      <h3 class="bounce-card-title transition-colors duration-500">
-        {{ item.title }}
-      </h3>
-      
-      <!-- Description -->
-      <p v-if="item.description" class="bounce-card-description transition-colors duration-500">
-        {{ item.description }}
-      </p>
+      <!-- Text Card (if no image) -->
+      <template v-else>
+        <!-- Icon -->
+        <div class="bounce-card-icon transition-colors duration-500" :style="{ color: isDark ? '#ffffff' : '#000000' }">
+          <component :is="item.icon" v-if="typeof item.icon === 'object'" />
+          <span v-else v-html="item.icon"></span>
+        </div>
+        
+        <!-- Title -->
+        <h3 class="bounce-card-title transition-colors duration-500" :style="{ color: isDark ? '#ffffff' : '#000000' }">
+          {{ item.title }}
+        </h3>
+        
+        <!-- Description -->
+        <p v-if="item.description" class="bounce-card-description transition-colors duration-500" :style="{ color: isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)' }">
+          {{ item.description }}
+        </p>
+      </template>
     </div>
   </div>
 </template>
@@ -177,6 +187,13 @@ onMounted(() => {
   const cards = containerRef.value.querySelectorAll('.bounce-card')
   if (cards.length === 0) return
   
+  // Set initial transforms
+  cards.forEach((card, idx) => {
+    const baseTransform = props.transformStyles[idx] || 'none'
+    gsap.set(card, { transform: baseTransform })
+  })
+  
+  // Animate in
   gsap.fromTo(
     cards,
     { scale: 0 },
@@ -214,7 +231,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* GSAP handles transform animations */
 }
 
 .bounce-card-icon {
@@ -233,6 +250,21 @@ onMounted(() => {
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   line-height: 1.6;
-  opacity: 0.8;
+}
+
+.bounce-card.has-image {
+  padding: 0;
+  overflow: hidden;
+  width: 200px;
+  height: 200px;
+  margin-left: -100px;
+  margin-top: -100px;
+  border-width: 5px;
+}
+
+.bounce-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

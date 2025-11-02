@@ -13,6 +13,7 @@
     "@heroicons/vue": "^2.2.0",
     "@react-three/fiber": "^8.18.0",
     "@react-three/postprocessing": "^2.19.1",
+    "@vueuse/core": "^14.0.0",
     "@vueuse/motion": "^3.0.3",
     "axios": "^1.13.1",
     "firebase": "^12.5.0",

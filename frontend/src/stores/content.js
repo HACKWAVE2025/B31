@@ -15,6 +15,8 @@ export const useContentStore = defineStore('content', {
   getters: {
     recentUploads: (state) => state.uploads.slice(0, 5),
     recentProcessed: (state) => state.processedContent.slice(0, 5),
+    // processedContent is the same as savedContent
+    // (when you save processed content, it means it's been processed)
   },
 
   actions: {
@@ -32,6 +34,10 @@ export const useContentStore = defineStore('content', {
         // Fetch saved content from database
         const savedContent = await databaseService.getSavedContent(userId);
         this.savedContent = savedContent;
+        
+        // processedContent is the same as savedContent
+        // (savedContent means the file was processed and saved)
+        this.processedContent = savedContent;
 
         return { success: true };
       } catch (error) {
@@ -72,6 +78,8 @@ export const useContentStore = defineStore('content', {
         });
         
         this.savedContent.unshift(saved);
+        // Also add to processedContent since they're the same
+        this.processedContent.unshift(saved);
         return { success: true, data: saved };
       } catch (error) {
         console.error('Save content error:', error);
@@ -86,6 +94,7 @@ export const useContentStore = defineStore('content', {
       try {
         await databaseService.deleteSavedContent(contentId);
         this.savedContent = this.savedContent.filter((c) => c.id !== contentId);
+        this.processedContent = this.processedContent.filter((c) => c.id !== contentId);
         return { success: true };
       } catch (error) {
         console.error('Delete content error:', error);

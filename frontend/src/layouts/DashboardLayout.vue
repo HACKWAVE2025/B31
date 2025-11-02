@@ -1,212 +1,266 @@
 <template>
-  <div class="flex h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Sidebar -->
-    <aside
-      :class="[
-        'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      ]"
-    >
-      <!-- Logo -->
-      <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
-        <router-link to="/dashboard" class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
-          <span class="text-xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            SkillSet AI
-          </span>
-        </router-link>
-        <button @click="toggleSidebar" class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Navigation -->
-      <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-        <router-link
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.to"
-          @click="closeSidebarOnMobile"
-          class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group"
-          active-class="bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-md"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" v-html="item.icon"></svg>
-          <span class="font-medium">{{ item.name }}</span>
-        </router-link>
-      </nav>
-
-      <!-- User Section -->
-      <div class="border-t border-gray-200 dark:border-gray-700 p-4">
-        <div class="flex items-center space-x-3 px-4 py-3">
-          <div v-if="currentUser" class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-semibold">
-            {{ currentUser.displayName?.charAt(0) || currentUser.email?.charAt(0) || 'U' }}
-          </div>
-          <div v-else class="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {{ currentUser?.displayName || currentUser?.email || 'Guest User' }}
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {{ currentUser?.email || 'Demo Mode' }}
-            </p>
-          </div>
-          <button 
-            v-if="currentUser"
-            @click="handleLogout"
-            class="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-            title="Logout"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <!-- Header -->
-      <header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6">
-        <div class="flex items-center space-x-4">
-          <button
-            @click="toggleSidebar"
-            class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-            {{ currentPageTitle }}
-          </h1>
-        </div>
-
-        <div class="flex items-center space-x-4">
-          <!-- Theme Toggle -->
-          <button
-            @click="themeStore.toggleTheme()"
-            class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
-            title="Toggle theme"
-          >
-            <svg v-if="themeStore.isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          </button>
-
-          <!-- Settings -->
-          <router-link
-            to="/dashboard/settings"
-            class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
-            title="Settings"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </router-link>
-        </div>
-      </header>
-
-      <!-- Page Content -->
-      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 custom-scrollbar">
-        <router-view />
-      </main>
+  <div class="relative w-full min-h-screen overflow-x-hidden">
+    <!-- Background Effects - Same as Landing Page -->
+    <DitherBackground v-if="isDark" />
+    <div v-else class="fixed top-0 left-0 w-full h-full z-0">
+      <Iridescence
+        :color="[1, 1, 1]"
+        :mouseReact="true"
+        :amplitude="0.1"
+        :speed="1.0"
+      />
     </div>
 
-    <!-- Mobile Sidebar Overlay -->
-    <div
-      v-if="sidebarOpen"
-      @click="closeSidebar"
-      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-    ></div>
+    <!-- Main Content -->
+    <div class="relative z-10">
+      <!-- Navbar - Same as Landing Page -->
+      <div class="fixed top-0 left-0 right-0 z-20 flex justify-center pt-6 px-6">
+        <nav class="w-full max-w-7xl">
+          <div 
+            class="backdrop-blur-2xl rounded-full px-8 py-4 flex items-center justify-between shadow-xl transition-colors duration-500"
+            :style="{
+              background: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.6)',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)',
+              border: '1px solid',
+              boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)'
+            }"
+          >
+            <!-- Logo - Same as Landing Page -->
+            <router-link to="/dashboard" class="font-sora font-bold text-lg flex items-center gap-2 transition-colors duration-500" :style="{ color: textColor }">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" :stroke="textColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" :stroke="textColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" :stroke="textColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              SkillSet AI
+            </router-link>
+
+            <!-- Navigation Links + Actions -->
+            <div class="flex items-center gap-6">
+              <!-- Horizontal Navigation Links -->
+              <router-link
+                v-for="item in navigation"
+                :key="item.name"
+                :to="item.to"
+                class="font-inter text-sm font-medium transition-all hover:opacity-70 hidden lg:block"
+                :class="{ 'font-bold': route.path === item.to }"
+                :style="{ color: textColor }"
+              >
+                {{ item.name }}
+              </router-link>
+
+              <!-- User Menu Dropdown -->
+              <div class="relative" ref="userMenuRef">
+                <button
+                  @click="toggleUserMenu"
+                  class="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 hover:scale-105"
+                  :style="{
+                    background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`
+                  }"
+                >
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center font-sora font-bold text-sm"
+                    :style="{
+                      background: isDark ? '#ffffff' : '#000000',
+                      color: isDark ? '#000000' : '#ffffff'
+                    }">
+                    {{ currentUser?.displayName?.charAt(0) || currentUser?.email?.charAt(0) || 'U' }}
+                  </div>
+                  <span class="font-inter text-sm font-medium hidden md:block" :style="{ color: textColor }">
+                    {{ currentUser?.displayName?.split(' ')[0] || 'User' }}
+                  </span>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <Transition name="fade-scale">
+                  <div
+                    v-if="userMenuOpen"
+                    class="absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl overflow-hidden"
+                    :style="{
+                      background: isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'
+                    }"
+                  >
+                    <!-- User Info -->
+                    <div class="p-4 border-b" :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }">
+                      <p class="font-sora font-bold text-sm" :style="{ color: textColor }">
+                        {{ currentUser?.displayName || 'Guest User' }}
+                      </p>
+                      <p class="font-inter text-xs mt-1" :style="{ color: secondaryTextColor }">
+                        {{ currentUser?.email || 'demo@example.com' }}
+                      </p>
+                    </div>
+
+                    <!-- Mobile Navigation Links -->
+                    <div class="lg:hidden border-b" :style="{ borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }">
+                      <router-link
+                        v-for="item in navigation"
+                        :key="item.name"
+                        :to="item.to"
+                        @click="closeUserMenu"
+                        class="block px-4 py-3 font-inter text-sm font-medium transition-all hover:opacity-70"
+                        :style="{ color: textColor }"
+                      >
+                        {{ item.name }}
+                      </router-link>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="p-2">
+                      <router-link
+                        to="/dashboard/settings"
+                        @click="closeUserMenu"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium transition-all hover:opacity-70"
+                        :style="{ color: textColor }"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="3" :stroke="textColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" :stroke="textColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Settings
+                      </router-link>
+                      <button
+                        v-if="currentUser"
+                        @click="handleLogout"
+                        class="w-full flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-sm font-medium transition-all hover:opacity-70"
+                        :style="{ color: textColor }"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" :stroke="textColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+
+              <!-- Theme Toggle Button -->
+              <button
+                @click="toggleTheme"
+                class="p-2 rounded-full transition-all duration-300 hover:scale-110"
+                :style="{
+                  background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'}`
+                }"
+                aria-label="Toggle theme"
+              >
+                <!-- Sun icon for light mode -->
+                <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="5" :stroke="textColor" strokeWidth="2"/>
+                  <path d="M12 1V3M12 21V23M23 12H21M3 12H1M20.49 3.51L19.07 4.93M4.93 19.07L3.51 20.49M20.49 20.49L19.07 19.07M4.93 4.93L3.51 3.51" :stroke="textColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <!-- Moon icon for dark mode -->
+                <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" :stroke="textColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Page Content -->
+      <main class="relative pt-32 pb-8 px-6 min-h-screen flex flex-col">
+        <div class="flex-1">
+          <router-view />
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-auto pt-16">
+          <Footer />
+        </div>
+      </main>
+      
+      <!-- Scroll to Top Button -->
+      <ScrollToTop />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useThemeStore } from '../stores/theme';
-import { useFirebaseAuth } from '../composables/useFirebaseAuth';
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useDark } from '@vueuse/core'
+import { useFirebaseAuth } from '../composables/useFirebaseAuth'
+import DitherBackground from '../components/DitherBackground.vue'
+import Iridescence from '../components/Iridescence.vue'
+import Footer from '../components/Footer.vue'
+import ScrollToTop from '../components/ScrollToTop.vue'
 
-const router = useRouter();
-const route = useRoute();
-const themeStore = useThemeStore();
-const { currentUser, logout } = useFirebaseAuth();
+const router = useRouter()
+const route = useRoute()
+const { currentUser, logout } = useFirebaseAuth()
 
-const sidebarOpen = ref(false);
+const isDark = useDark()
+const userMenuOpen = ref(false)
+const userMenuRef = ref(null)
+
+const textColor = computed(() => isDark.value ? '#ffffff' : '#000000')
+const secondaryTextColor = computed(() => isDark.value ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)')
+
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  console.log('Theme toggled, isDark:', isDark.value)
+}
+
+const toggleUserMenu = () => {
+  userMenuOpen.value = !userMenuOpen.value
+}
+
+const closeUserMenu = () => {
+  userMenuOpen.value = false
+}
 
 const handleLogout = async () => {
-  const result = await logout();
+  const result = await logout()
   if (result.success) {
-    router.push('/');
+    closeUserMenu()
+    router.push('/')
   }
-};
+}
 
-// Navigation items
+// Close user menu when clicking outside
+const handleClickOutside = (event) => {
+  if (userMenuRef.value && !userMenuRef.value.contains(event.target)) {
+    closeUserMenu()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// Navigation items - horizontal
 const navigation = [
-  {
-    name: 'Dashboard',
-    to: '/dashboard',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />',
-  },
-  {
-    name: 'Upload',
-    to: '/dashboard/upload',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />',
-  },
-  {
-    name: 'History',
-    to: '/dashboard/history',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />',
-  },
-  {
-    name: 'Saved Content',
-    to: '/dashboard/saved',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />',
-  },
-  {
-    name: 'Profile',
-    to: '/dashboard/profile',
-    icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />',
-  },
-];
-
-const currentPageTitle = computed(() => {
-  const routeName = route.name;
-  return routeName || 'Dashboard';
-});
-
-const toggleSidebar = () => {
-  sidebarOpen.value = !sidebarOpen.value;
-};
-
-const closeSidebar = () => {
-  sidebarOpen.value = false;
-};
-
-const closeSidebarOnMobile = () => {
-  if (window.innerWidth < 1024) {
-    closeSidebar();
-  }
-};
+  { name: 'Dashboard', to: '/dashboard' },
+  { name: 'Upload', to: '/dashboard/upload' },
+  { name: 'History', to: '/dashboard/history' },
+  { name: 'Saved', to: '/dashboard/saved' },
+  { name: 'Profile', to: '/dashboard/profile' }
+]
 </script>
 
 <style scoped>
-.router-link-active {
-  @apply bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-md;
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: all 0.2s ease;
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+}
+
+.fade-scale-enter-to,
+.fade-scale-leave-from {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 </style>

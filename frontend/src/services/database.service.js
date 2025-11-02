@@ -168,6 +168,19 @@ class DatabaseService {
     }
   }
 
+  /**
+   * Update user survey data
+   */
+  async updateUserSurvey(userId, surveyData) {
+    try {
+      const response = await this.api.put(`/users/${userId}/survey`, surveyData);
+      return response.data;
+    } catch (error) {
+      console.error('Update survey error:', error);
+      throw error;
+    }
+  }
+
   // ==================== STATS OPERATIONS ====================
 
   /**

@@ -36,9 +36,35 @@ def create_app(config_name=None):
     # Initialize app directories
     config[config_name].init_app(app)
     
-    # Create database tables
+    # Create database tables and ensure survey columns exist
     with app.app_context():
         db.create_all()
+        
+        # Add survey columns if they don't exist
+        try:
+            from sqlalchemy import text, inspect
+            inspector = inspect(db.engine)
+            
+            # Check if users table exists
+            if 'users' in inspector.get_table_names():
+                columns = [col['name'] for col in inspector.get_columns('users')]
+                
+                # Add survey_data column if missing
+                if 'survey_data' not in columns:
+                    print("⚠️  Adding survey_data column to users table...")
+                    db.session.execute(text('ALTER TABLE users ADD COLUMN survey_data JSON'))
+                    db.session.commit()
+                    print("✅ survey_data column added")
+                
+                # Add survey_completed column if missing
+                if 'survey_completed' not in columns:
+                    print("⚠️  Adding survey_completed column to users table...")
+                    db.session.execute(text('ALTER TABLE users ADD COLUMN survey_completed BOOLEAN DEFAULT FALSE'))
+                    db.session.commit()
+                    print("✅ survey_completed column added")
+        except Exception as e:
+            print(f"⚠️  Column migration error (may be normal on first run): {e}")
+            db.session.rollback()
     
     # Register blueprints
     from routes.auth import auth_bp

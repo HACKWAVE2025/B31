@@ -16,6 +16,11 @@ class User(db.Model):
     id = db.Column(db.String(128), primary_key=True)  # Firebase UID
     email = db.Column(db.String(255), unique=True, nullable=False)
     display_name = db.Column(db.String(255))
+    
+    # Survey data
+    survey_data = db.Column(JSON)  # Store survey responses
+    survey_completed = db.Column(db.Boolean, default=False)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -28,6 +33,8 @@ class User(db.Model):
             'id': self.id,
             'email': self.email,
             'displayName': self.display_name,
+            'surveyData': self.survey_data,
+            'surveyCompleted': self.survey_completed,
             'createdAt': self.created_at.isoformat() if self.created_at else None,
             'updatedAt': self.updated_at.isoformat() if self.updated_at else None
         }

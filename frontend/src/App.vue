@@ -1,6 +1,7 @@
 <template>
   <div id="app" :class="{ dark: themeStore.isDark }">
     <RouterView />
+    <ScrollToTop />
   </div>
 </template>
 
@@ -8,6 +9,7 @@
 import { onMounted } from 'vue';
 import { useThemeStore } from './stores/theme';
 import { useAuthStore } from './stores/auth';
+import ScrollToTop from './components/ScrollToTop.vue';
 
 const themeStore = useThemeStore();
 const authStore = useAuthStore();

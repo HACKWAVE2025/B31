@@ -52,7 +52,7 @@ const canvasRef = ref(null)
 const mousePos = ref(new THREE.Vector2(0, 0))
 
 const bgColor = computed(() => isDark.value ? '#000000' : '#ffffff')
-const waveColor = computed(() => isDark.value ? [0.3, 0.3, 0.3] : [0.7, 0.7, 0.7])
+const waveColor = computed(() => isDark.value ? [0.5, 0.5, 0.5] : [0.7, 0.7, 0.7])
 
 let renderer = null
 let scene = null

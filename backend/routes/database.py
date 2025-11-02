@@ -54,6 +54,52 @@ def get_user(user_id):
     return jsonify(user.to_dict()), 200
 
 
+@db_bp.route('/users/<user_id>/survey', methods=['PUT'])
+def update_user_survey(user_id):
+    """Update user survey data"""
+    data = request.json
+    
+    try:
+        user = User.query.get(user_id)
+        
+        if not user:
+            # Create user if doesn't exist
+            user = User(
+                id=user_id,
+                email=data.get('email', f'{user_id}@temp.com'),
+                display_name=data.get('displayName', 'User')
+            )
+            db.session.add(user)
+        
+        # Update survey data (store as JSON)
+        user.survey_data = {
+            'readingLevel': data.get('readingLevel'),
+            'features': data.get('features', {}),
+            'contentType': data.get('contentType'),
+            'learningGoal': data.get('learningGoal'),
+            'learningStyle': data.get('learningStyle'),
+            'completedAt': data.get('completedAt')
+        }
+        user.survey_completed = True
+        user.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Survey data saved successfully',
+            'user': user.to_dict()
+        }), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating survey: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 # ==================== UPLOAD ROUTES ====================
 
 @db_bp.route('/uploads', methods=['POST'])

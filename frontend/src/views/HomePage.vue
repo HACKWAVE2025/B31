@@ -9,8 +9,6 @@
         :amplitude="0.1"
         :speed="1.0"
       />
-      <!-- Black shade overlay for better text contrast -->
-      <div class="absolute inset-0 bg-black opacity-30 pointer-events-none" />
     </div>
 
     <!-- Main Content -->
@@ -75,36 +73,34 @@
       <section class="relative min-h-screen flex items-center justify-center px-6 lg:px-12 pt-24">
         <div class="max-w-7xl mx-auto w-full text-center">
           <!-- Main Title -->
-          <h1 
-            class="font-sora font-extrabold leading-tight uppercase transition-colors duration-500"
+          <div 
+            class="gradient-title-wrapper font-sora font-black leading-tight uppercase transition-colors duration-500"
+            :class="{ 'light-mode-gradient': !isDark }"
             :style="{ 
-              fontSize: 'clamp(48px, 8vw, 96px)',
-              lineHeight: '1.1',
-              letterSpacing: '-0.02em',
-              ...(isDark 
-                ? { color: textColor }
-                : {
-                    background: 'linear-gradient(90deg, #000000, #ffffff, #cccccc, #0000ff, #000000)',
-                    backgroundSize: '200% 100%',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    animation: 'rgbGradient 3s linear infinite'
-                  }
-              )
+              fontSize: 'clamp(72px, 12vw, 140px)',
+              lineHeight: '1.05',
+              letterSpacing: '-0.03em',
+              fontWeight: '900'
             }"
           >
-            <DecryptedText
-              text="SKILLSET AI"
-              :speed="200"
-              :maxIterations="20"
-              :sequential="true"
-              revealDirection="start"
-              animateOn="view"
-              :loopInterval="8000"
-              characters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-            />
-          </h1>
+            <h1 
+              class="gradient-title-content"
+              :style="{ 
+                color: isDark ? textColor : 'inherit'
+              }"
+            >
+              <DecryptedText
+                text="SKILLSET AI"
+                :speed="200"
+                :maxIterations="20"
+                :sequential="true"
+                revealDirection="start"
+                animateOn="view"
+                :loopInterval="8000"
+                characters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+              />
+            </h1>
+          </div>
 
           <BlurText
             text="Unlock your potential with personalized learning."
@@ -128,7 +124,7 @@
           />
 
           <!-- Button Group -->
-          <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8 relative">
+          <div ref="heroButtonGroup" class="flex flex-col sm:flex-row gap-4 justify-center mt-8 relative">
             <!-- Primary Button -->
             <button
               @click="showAuthModal = true"
@@ -152,6 +148,26 @@
               See Demo
             </button>
           </div>
+          
+          <!-- Sticky Bottom Get Started Button (appears on scroll) -->
+          <Transition name="slide-up">
+            <div
+              v-if="showStickyButton"
+              class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
+            >
+              <button
+                @click="showAuthModal = true"
+                class="px-10 py-5 rounded-full font-inter font-bold shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+                :style="{
+                  backgroundColor: isDark ? '#ffffff' : '#000000',
+                  color: isDark ? '#000000' : '#ffffff',
+                  boxShadow: isDark ? '0 20px 60px rgba(255, 255, 255, 0.3)' : '0 20px 60px rgba(0, 0, 0, 0.5)'
+                }"
+              >
+                Get Started
+              </button>
+            </div>
+          </Transition>
         </div>
       </section>
 
@@ -176,11 +192,48 @@
           <div class="flex justify-center">
             <BounceCards
               :items="features"
-              :containerWidth="900"
+              :containerWidth="800"
               :containerHeight="400"
               :animationDelay="0.5"
               :animationStagger="0.06"
               easeType="elastic.out(1, 0.8)"
+              :transformStyles="whySkillsetTransforms"
+              :enableHover="true"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Extra Features Section -->
+      <ExtraFeatures @openModal="showAuthModal = true" />
+
+      <!-- Powerful Features Section -->
+      <section class="relative py-24 px-6 lg:px-12">
+        <div class="max-w-7xl mx-auto">
+          <!-- Section Title -->
+          <div class="text-center mb-16">
+            <BlurText
+              text="POWERFUL FEATURES"
+              :delay="100"
+              animateBy="words"
+              direction="top"
+              as="h2"
+              className="font-sora font-extrabold text-4xl md:text-5xl lg:text-6xl mb-4 uppercase tracking-wide transition-colors duration-500"
+              :style="{ color: textColor }"
+            />
+            <div class="w-24 h-1 mx-auto rounded-full transition-colors duration-500" :style="{ background: textColor }" />
+          </div>
+
+          <!-- Feature Cards with BounceCards -->
+          <div class="flex justify-center">
+            <BounceCards
+              :items="powerfulFeatures"
+              :containerWidth="1000"
+              :containerHeight="400"
+              :animationDelay="0.7"
+              :animationStagger="0.08"
+              easeType="elastic.out(1, 0.8)"
+              :transformStyles="powerfulFeaturesTransforms"
               :enableHover="true"
             />
           </div>
@@ -197,46 +250,58 @@
       <CTABand @openModal="showAuthModal = true" />
 
       <!-- Footer -->
-      <footer class="relative py-12 px-6 transition-colors duration-500" :style="{ backgroundColor: isDark ? '#000000' : '#1a1a1a' }">
-        <div class="max-w-7xl mx-auto text-center">
-          <div class="flex items-center justify-center gap-2 mb-4">
-            <svg class="w-6 h-6" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L2 7L12 12L22 7L12 2Z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 17L12 22L22 17"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12L12 17L22 12"></path>
-            </svg>
-            <span class="text-lg font-bold text-white">SkillSet AI</span>
-          </div>
-          <p class="text-gray-400 text-sm">
-            © 2024 SkillSet AI. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
 
     <!-- Auth Modal -->
-    <AuthModal v-if="showAuthModal" @close="showAuthModal = false" />
+    <AuthModal v-model="showAuthModal" @close="showAuthModal = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDark, useToggle } from '@vueuse/core'
+import { useDark } from '@vueuse/core'
 import DitherBackground from '../components/DitherBackground.vue'
 import Iridescence from '../components/Iridescence.vue'
 import DecryptedText from '../components/DecryptedText.vue'
 import BlurText from '../components/BlurText.vue'
 import BounceCards from '../components/BounceCards.vue'
 import AuthModal from '../components/AuthModal.vue'
+import ExtraFeatures from '../components/ExtraFeatures.vue'
 import AdvancedGrid from '../components/AdvancedGrid.vue'
 import TestimonialsCarousel from '../components/TestimonialsCarousel.vue'
 import CTABand from '../components/CTABand.vue'
+import Footer from '../components/Footer.vue'
 
 const router = useRouter()
 const isDark = useDark()
-const toggleTheme = useToggle(isDark)
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  console.log('Theme toggled, isDark:', isDark.value)
+}
 const showAuthModal = ref(false)
+
+// Sticky button logic
+const showStickyButton = ref(false)
+const heroButtonGroup = ref(null)
+
+const handleScroll = () => {
+  if (heroButtonGroup.value) {
+    const rect = heroButtonGroup.value.getBoundingClientRect()
+    // Show sticky button when hero buttons are scrolled out of view
+    showStickyButton.value = rect.bottom < 0
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  handleScroll() // Check initial state
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 const textColor = computed(() => isDark.value ? '#ffffff' : '#000000')
 const secondaryTextColor = computed(() => isDark.value ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)')
@@ -258,9 +323,106 @@ const features = [
     icon: '▲'
   }
 ]
+
+const whySkillsetTransforms = [
+  'rotate(5deg) translate(-150px)',
+  'rotate(-3deg)',
+  'rotate(5deg) translate(150px)'
+]
+
+const powerfulFeatures = [
+  {
+    title: 'AI-Powered Analysis',
+    description: 'Advanced machine learning algorithms analyze your skills and provide personalized insights.',
+    icon: '●'
+  },
+  {
+    title: 'Smart Roadmaps',
+    description: 'Get custom learning paths designed specifically for your career goals and skill gaps.',
+    icon: '■'
+  },
+  {
+    title: 'Real-time Analytics',
+    description: 'Track your progress with comprehensive dashboards and performance metrics.',
+    icon: '▼'
+  },
+  {
+    title: 'Expert Resources',
+    description: 'Access curated content from industry experts and top learning platforms.',
+    icon: '◆'
+  },
+  {
+    title: 'Career Insights',
+    description: 'Discover trending skills and opportunities aligned with your professional journey.',
+    icon: '★'
+  }
+]
+
+const powerfulFeaturesTransforms = [
+  'rotate(10deg) translate(-220px)',
+  'rotate(5deg) translate(-110px)',
+  'rotate(-3deg)',
+  'rotate(-10deg) translate(110px)',
+  'rotate(2deg) translate(220px)'
+]
 </script>
 
 <style scoped>
+/* Gradient wrapper applies the animated gradient background */
+.gradient-title-wrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.light-mode-gradient {
+  background: linear-gradient(90deg, #000000, #ffffff, #d3d3d3, #0066ff, #87ceeb, #000000);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gradientMove 6s linear infinite;
+}
+
+/* Make the content and all children transparent to show the gradient */
+.light-mode-gradient .gradient-title-content,
+.light-mode-gradient :deep(*) {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Sticky button slide-up animation */
+.slide-up-enter-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.slide-up-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translate(-50%, 100px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 100px);
+}
+
+.slide-up-enter-to,
+.slide-up-leave-from {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 300% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @keyframes rgbGradient {
   0% {
     background-position: 0% 50%;

@@ -13,11 +13,13 @@ class GeminiService {
   /**
    * Simplify complex text for better comprehension
    */
-  async simplifyText(text, level = 'simple') {
+  async simplifyText(text, level = 'simple', userContext = '') {
+    const contextPrompt = userContext ? `\n\nUser Context: ${userContext}\n` : '';
+    
     const prompts = {
-      simple: `Simplify the following text to an 8th-grade reading level. Keep all important information but use simpler words and shorter sentences:\n\n${text}`,
-      'very-simple': `Simplify the following text to a 5th-grade reading level. Use very simple words and short sentences:\n\n${text}`,
-      medium: `Simplify the following text to a 10th-grade reading level. Make it easier to understand while maintaining technical accuracy:\n\n${text}`,
+      simple: `Simplify the following text to an 8th-grade reading level. Keep all important information but use simpler words and shorter sentences:${contextPrompt}\n\n${text}`,
+      'very-simple': `Simplify the following text to a 5th-grade reading level. Use very simple words and short sentences:${contextPrompt}\n\n${text}`,
+      medium: `Simplify the following text to a 10th-grade reading level. Make it easier to understand while maintaining technical accuracy:${contextPrompt}\n\n${text}`,
     };
 
     try {
@@ -41,8 +43,9 @@ class GeminiService {
   /**
    * Generate comprehensive summary of text
    */
-  async generateSummary(text, maxLength = 200) {
-    const prompt = `Provide a comprehensive summary of the following text in about ${maxLength} words. Focus on key points and main ideas:\n\n${text}`;
+  async generateSummary(text, maxLength = 200, userContext = '') {
+    const contextPrompt = userContext ? `\n\nUser Context: ${userContext}\n` : '';
+    const prompt = `Provide a comprehensive summary of the following text in about ${maxLength} words. Focus on key points and main ideas:${contextPrompt}\n\n${text}`;
 
     try {
       const result = await this.model.generateContent(prompt);
@@ -139,8 +142,9 @@ class GeminiService {
   /**
    * Generate key points from long content
    */
-  async extractKeyPoints(text, numPoints = 5) {
-    const prompt = `Extract the ${numPoints} most important key points from the following text. Present them as a numbered list:\n\n${text}`;
+  async extractKeyPoints(text, numPoints = 5, userContext = '') {
+    const contextPrompt = userContext ? `\n\nUser Context: ${userContext}\n` : '';
+    const prompt = `Extract the ${numPoints} most important key points from the following text. Present them as a numbered list:${contextPrompt}\n\n${text}`;
 
     try {
       const result = await this.model.generateContent(prompt);
@@ -155,6 +159,65 @@ class GeminiService {
         success: false,
         error: error.message,
         keyPoints: '',
+      };
+    }
+  }
+
+  /**
+   * Generate flashcards for studying
+   */
+  async generateFlashcards(text, learningGoal, readingLevel = 'simple', numCards = 8) {
+    const prompt = `Based on the following text and the user's learning goal, create ${numCards} flashcards for studying. 
+
+Learning Goal: ${learningGoal}
+Reading Level: ${readingLevel}
+
+Format your response as a JSON array of objects with "question" and "answer" fields. Make questions clear and answers concise but complete.
+
+Text:
+${text}
+
+Respond ONLY with valid JSON array, no markdown or explanation.`;
+
+    try {
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const responseText = response.text();
+      
+      // Try to parse JSON from response
+      let flashcards = [];
+      try {
+        // Remove markdown code blocks if present
+        const cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        flashcards = JSON.parse(cleanedText);
+        
+        // Add flipped state to each card
+        flashcards = flashcards.map(card => ({ ...card, flipped: false }));
+      } catch (parseError) {
+        console.error('Failed to parse flashcards JSON:', parseError);
+        // Fallback: try to extract Q&A manually
+        const lines = responseText.split('\n').filter(l => l.trim());
+        for (let i = 0; i < lines.length - 1; i += 2) {
+          if (lines[i].includes('?')) {
+            flashcards.push({
+              question: lines[i].replace(/^\d+\.\s*/, '').trim(),
+              answer: lines[i + 1].replace(/^\d+\.\s*/, '').trim(),
+              flipped: false
+            });
+          }
+        }
+      }
+      
+      return {
+        success: true,
+        flashcards: flashcards,
+      };
+    } catch (error) {
+      console.error('Gemini flashcards error:', error);
+      return {
+        success: false,
+        error: error.message,
+        flashcards: [],
       };
     }
   }

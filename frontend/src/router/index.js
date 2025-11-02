@@ -9,6 +9,16 @@ const routes = [
     component: () => import('../views/HomePage.vue'),
   },
   {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('../views/PrivacyPolicy.vue'),
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('../views/TermsOfService.vue'),
+  },
+  {
     path: '/dashboard',
     component: () => import('../layouts/DashboardLayout.vue'),
     meta: { requiresAuth: true },
@@ -70,6 +80,21 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    // If there's a saved position (browser back/forward), use it
+    if (savedPosition) {
+      return savedPosition;
+    }
+    // If navigating to a hash anchor, scroll to it
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+      };
+    }
+    // Default: scroll to top for all new page navigations
+    return { top: 0, behavior: 'smooth' };
+  },
 });
 
 // Navigation guards
